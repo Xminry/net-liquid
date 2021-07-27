@@ -7,13 +7,13 @@ SPDX-License-Identifier: Apache-2.0
 package gmtls
 
 import (
+	"chainmaker.org/chainmaker/common/helper"
+	"chainmaker.org/chainmaker/common/helper/libp2ppeer"
 	"fmt"
 	"sync"
 
 	"chainmaker.org/chainmaker/chainmaker-net-common/common"
-	"chainmaker.org/chainmaker/chainmaker-net-libp2p/utils"
 	cmx509 "chainmaker.org/chainmaker/common/crypto/x509"
-	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/tjfoc/gmsm/x509"
 )
 
@@ -76,11 +76,11 @@ func (v *CertValidator) VerifyPeerCertificateFunc(dualCert bool) func(rawCerts [
 		if err != nil {
 			return fmt.Errorf("verify certificate failed: %s", err.Error())
 		}
-		pubKey, err := utils.ParsePublicKeyToPubKey(cert.PublicKey)
+		pubKey, err := helper.ParseGoPublicKeyToPubKey(cert.PublicKey)
 		if err != nil {
 			return fmt.Errorf("parse pubkey failed: %s", err.Error())
 		}
-		pid, err := peer.IDFromPublicKey(pubKey)
+		pid, err := libp2ppeer.IDFromPublicKey(pubKey)
 		if err != nil {
 			return fmt.Errorf("parse pid from pubkey failed: %s", err.Error())
 		}
