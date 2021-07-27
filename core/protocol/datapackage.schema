@@ -1,0 +1,5 @@
+struct DataPackage {
+	Protocol string
+	Payload  []byte
+	Compress bool
+}

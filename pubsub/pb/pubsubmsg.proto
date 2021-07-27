@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option go_package = "chainmaker.org/chainmaker-go/module/net/liquid/simple/pubsub/pb";
+
+package pubsub;
+
+message PubsubMsg {
+  repeated ApplicationMsg msg = 1;
+  IHaveOrWant spread_ctrl = 2;
+  TopicMsg topic_ctrl = 3;
+  PeeringMsg peering_ctrl = 4;
+}
+
+message Heartbeat {
+  uint64 timestamp = 1;
+  uint64 timestamp_res = 2;
+}
+
+message ApplicationMsg {
+  repeated string topics = 1;
+  string sender = 2;
+  uint64 msg_seq = 3;
+  bytes msg_body = 4;
+  bytes sender_key = 5;
+  bytes sender_sign = 6;
+  repeated string stations = 7;
+}
+
+message TopicMsg {
+  repeated string subscribed = 1;
+  repeated string unsubscribed = 2;
+  uint64 msg_seq = 3;
+}
+
+message PeeringMsg {
+  repeated string cut_off = 1;
+  repeated string join_up = 2;
+  uint64 msg_seq = 3;
+}
+
+message MsgMetadata {
+  string topic = 1;
+  string sender = 2;
+  uint64 msg_seq = 3;
+}
+
+message IHaveOrWant {
+  Phase phase =1;
+  repeated MsgMetadata have = 2;
+  repeated MsgMetadata want = 3;
+  enum Phase {
+    IHave = 0;
+    IHaveAndIWant = 1;
+    IWant = 2;
+  }
+}

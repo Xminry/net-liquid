@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option go_package = "chainmaker.org/chainmaker-go/module/net/liquid/discovery/protocoldiscovery/pb";
+
+package discovery;
+
+message DiscoveryMsg {
+  Type type = 1;
+  repeated PeerInfo pInfos = 2;
+  uint32 size = 3;
+  enum Type {
+    Announce = 0;
+    FindReq = 1;
+    FindRes = 2;
+  }
+}
+
+message PeerInfo {
+  string pid = 1;
+  string addr = 2;
+}
+

@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option go_package = "chainmaker.org/chainmaker-go/module/net/liquid/simple/pb";
+
+package net;
+
+
+
+message ProtocolExchangerMsg {
+  string pid = 1;
+  repeated string protocols = 2;
+  ProtocolExchangerMsgType msg_type = 3;
+
+  enum ProtocolExchangerMsgType {
+    PUSH = 0;
+    PUSH_OK = 1;
+    REQUEST = 2;
+    RESPONSE = 3;
+  }
+}
