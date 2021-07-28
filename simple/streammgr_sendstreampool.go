@@ -202,7 +202,7 @@ func (s *sendStreamPool) ReturnStream(stream network.SendStream) error {
 	case s.pool <- stream:
 		atomic.AddInt32(&s.idleSize, 1)
 	default:
-		s.DropStream(stream)
+		_ = stream.Close()
 	}
 	return nil
 }
