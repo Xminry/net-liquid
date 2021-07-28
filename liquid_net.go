@@ -26,6 +26,7 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/tlssupport"
 	cmx509 "chainmaker.org/chainmaker/common/crypto/x509"
 	commonPb "chainmaker.org/chainmaker/pb-go/common"
+	"chainmaker.org/chainmaker/pb-go/syscontract"
 	api "chainmaker.org/chainmaker/protocol"
 	"github.com/gogo/protobuf/proto"
 	ma "github.com/multiformats/go-multiaddr"
@@ -1057,13 +1058,13 @@ func (l *LiquidNet) GetNodeUidByCertId(certId string) (string, error) {
 
 // CheckRevokeTlsCerts check whether any tls certs revoked.
 func (l *LiquidNet) CheckRevokeTlsCerts(ac api.AccessControlProvider, certManageSystemContractPayload []byte) error {
-	var payload commonPb.SystemContractPayload
+	var payload commonPb.Payload
 	err := proto.Unmarshal(certManageSystemContractPayload, &payload)
 	if err != nil {
 		return fmt.Errorf("resolve payload failed: %v", err)
 	}
 	switch payload.Method {
-	case commonPb.CertManageFunction_CERTS_REVOKE.String():
+	case syscontract.CertManageFunction_CERTS_REVOKE.String():
 		return l.checkRevokeTlsCertsWithSystemContractPayload(ac, &payload)
 	default:
 		return nil
@@ -1072,7 +1073,7 @@ func (l *LiquidNet) CheckRevokeTlsCerts(ac api.AccessControlProvider, certManage
 
 func (l *LiquidNet) checkRevokeTlsCertsWithSystemContractPayload(
 	ac api.AccessControlProvider,
-	payload *commonPb.SystemContractPayload) error {
+	payload *commonPb.Payload) error {
 	allPeerIdAndCertBytesMap := l.peerIdTlsCertStore.StoreCopy()
 	if len(allPeerIdAndCertBytesMap) == 0 {
 		return nil
@@ -1087,11 +1088,11 @@ func (l *LiquidNet) checkRevokeTlsCertsWithSystemContractPayload(
 
 func (l *LiquidNet) checkRevokeThenDisconnect(
 	ac api.AccessControlProvider,
-	payload *commonPb.SystemContractPayload,
+	payload *commonPb.Payload,
 	peerIdCertMap map[string]*cmx509.Certificate) error {
 	for _, param := range payload.Parameters {
 		if param.Key == "cert_crl" {
-			crl := strings.Replace(param.Value, ",", "\n", -1)
+			crl := strings.Replace(string(param.Value), ",", "\n", -1)
 			crls, err := ac.ValidateCRL([]byte(crl))
 			if err != nil {
 				log.Errorf("[LiquidNet] [checkRevokeThenDisconnect] validate crl failed, %s", err.Error())
