@@ -5,7 +5,7 @@ go 1.15
 require (
 	chainmaker.org/chainmaker/chainmaker-net-common v0.0.1
 	chainmaker.org/chainmaker/common v0.0.0-20210728024029-cc04b857cec5
-	chainmaker.org/chainmaker/pb-go v0.0.0-20210722032511-d7299b62eae6
+	chainmaker.org/chainmaker/pb-go v0.0.0-20210727071340-d546973e655b
 	chainmaker.org/chainmaker/protocol v0.0.0-20210728062337-bbd34527245a
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548
 	github.com/gogo/protobuf v1.3.2
