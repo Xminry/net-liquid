@@ -73,7 +73,7 @@ const (
 	// DefaultMaxPeerCount is the default value for HostConfig.MaxPeerCountAllowed.
 	DefaultMaxPeerCount = 20
 	// DefaultMaxConnCountEachPeer is the default value for HostConfig.MaxConnCountEachPeerAllowed.
-	DefaultMaxConnCountEachPeer = 5
+	DefaultMaxConnCountEachPeer = 1
 	// DefaultPeerEliminationStrategy is the default value for HostConfig.ConnEliminationStrategy.
 	DefaultPeerEliminationStrategy = 3
 	// DefaultInitSendStreamSize is the default value for HostConfig.SendStreamPoolInitSize.
