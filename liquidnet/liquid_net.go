@@ -622,9 +622,10 @@ func (l *LiquidNet) confirmConfig() {
 		hc.SendStreamPoolCap = DefaultSendStreamMaxCount
 	}
 	if hc.PeerReceiveStreamMaxCount <= 0 {
-		hc.PeerReceiveStreamMaxCount = hc.SendStreamPoolCap * hc.SendStreamPoolCap
+		recommended := hc.SendStreamPoolCap * hc.SendStreamPoolCap
 		log.Warnf("[LiquidNet] wrong receive stream max count value set, use recommended value (set: %d, recommended: %d)",
-			hc.PeerReceiveStreamMaxCount, hc.PeerReceiveStreamMaxCount)
+			hc.PeerReceiveStreamMaxCount, recommended)
+		hc.PeerReceiveStreamMaxCount = recommended
 	}
 	if hc.MaxPeerCountAllowed <= 0 {
 		log.Warnf("[LiquidNet] wrong max peer count allowed value set, use default (set: %d, default: %d)",
