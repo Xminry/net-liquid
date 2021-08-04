@@ -25,8 +25,6 @@ import (
 	mafmt "github.com/multiformats/go-multiaddr-fmt"
 	manet "github.com/multiformats/go-multiaddr/net"
 	"github.com/xiaotianfork/quic-go"
-
-	"github.com/xiaotianfork/q-tls-common/x509"
 )
 
 const (
@@ -161,7 +159,8 @@ func NewNetwork(ctx context.Context, logger api.Logger, opt ...Option) (network.
 		return nil, err
 	}
 	if n.lPID == "" {
-		if n.loadPidFunc == nil {
+		return nil, ErrEmptyLocalPeerId
+		/*if n.loadPidFunc == nil {
 			return nil, ErrNilLoadPidFunc
 		}
 		//resolve local PID from TlsCfg.Certificates
@@ -175,7 +174,7 @@ func NewNetwork(ctx context.Context, logger api.Logger, opt ...Option) (network.
 		}
 		if n.lPID == "" {
 			return nil, ErrEmptyLocalPeerId
-		}
+		}*/
 	}
 	return n, nil
 }

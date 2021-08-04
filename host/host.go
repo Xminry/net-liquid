@@ -25,13 +25,15 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/util"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/simple"
+	"chainmaker.org/chainmaker/common/crypto"
 	api "chainmaker.org/chainmaker/protocol"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/tjfoc/gmsm/gmtls"
 )
 
 var (
-	// ErrProtocolIDNotSupportedByPeer will be returned if protocol not supported by remote peer when calling SendMsg method.
+	// ErrProtocolIDNotSupportedByPeer will be returned if protocol not supported by remote peer
+	// when calling SendMsg method.
 	ErrProtocolIDNotSupportedByPeer = errors.New("protocol id not supported by remote peer")
 	// ErrPeerNotConnected will be returned if remote peer not connect to us when calling SendMsg method.
 	ErrPeerNotConnected = errors.New("peer not connected")
@@ -51,21 +53,26 @@ var (
 
 // HostConfig contains necessary parameters for BasicHost.
 type HostConfig struct {
-	//NetType is the net type of liquid net.
+	// NetType is the network type of liquid net.
 	NetType NetworkType
+	// PrivateKey of crypto.
+	// Local peer.ID will be generated with it.
+	PrivateKey crypto.PrivateKey
 	// TlsCfg is the configuration for both tls server and client.
 	TlsCfg *tls.Config
 	// LoadPidFunc is a function which type is types.LoadPeerIdFromTlsCertFunc, used to load peer.ID from x509 certs.
 	LoadPidFunc types.LoadPeerIdFromTlsCertFunc
 	// QTlsCfg is the configuration for both quic tls server and client.
 	QTlsCfg *tls.Config
-	// LoadPidFunc is a function which type is types.LoadPeerIdFromQTlsCertFunc, used to load peer.ID from quic x509 certs.
+	// LoadPidFunc is a function which type is types.LoadPeerIdFromQTlsCertFunc,
+	// used to load peer.ID from quic x509 certs.
 	LoadPidFuncQ types.LoadPeerIdFromQTlsCertFunc
 	// GMTlsServerCfg is the configuration for gm tls server.
 	GMTlsServerCfg *gmtls.Config
 	// GMTlsClientCfg is the configuration for gm tls client.
 	GMTlsClientCfg *gmtls.Config
-	// LoadPidFuncGm is a function which type is types.LoadPeerIdFromGMTlsCertFunc, used to load peer.ID from gmx509 certs.
+	// LoadPidFuncGm is a function which type is types.LoadPeerIdFromGMTlsCertFunc,
+	// used to load peer.ID from gmx509 certs.
 	LoadPidFuncGm types.LoadPeerIdFromGMTlsCertFunc
 	// UseGMTls decides whether to use gm tls security.
 	UseGMTls bool
@@ -134,9 +141,19 @@ func (c *HostConfig) NewHost(networkType NetworkType, ctx context.Context, logge
 		notifyPeerConnChan:     make(chan network.Conn),
 		logger:                 logger,
 	}
+	// load local peer.ID
+	if c.PrivateKey == nil {
+		return nil, errors.New("private key expected")
+	}
+	var err error
+	h.sk = c.PrivateKey
+	lPid, err := util.ResolvePIDFromPubKey(h.sk.PublicKey())
+	if err != nil {
+		return nil, err
+	}
 	// create a new network instance
 	options := make([]Option, 0)
-	options = append(options, WithCtx(ctx), WithEnableTls(!c.Insecurity))
+	options = append(options, WithCtx(ctx), WithLocalPID(lPid), WithEnableTls(!c.Insecurity))
 	if !c.Insecurity {
 		if networkType == QuicNetwork {
 			options = append(options,
@@ -214,6 +231,7 @@ type BasicHost struct {
 	once sync.Once
 
 	ctx context.Context
+	sk  crypto.PrivateKey
 	nw  network.Network
 
 	peerStore store.PeerStore
@@ -480,8 +498,8 @@ Loop:
 		}
 		payloadHandler := bh.protocolMgr.GetHandler(pkg.ProtocolID())
 		if payloadHandler == nil {
-			bh.logger.Warnf("[Host] msg payload handler not found(protocol id:%s), drop this package(remote pid:%s)",
-				pkg.ProtocolID(), rPID)
+			bh.logger.Warnf("[Host] msg payload handler not found(protocol id:%s), "+
+				"drop this package(remote pid:%s)", pkg.ProtocolID(), rPID)
 			continue Loop
 		}
 		payloadHandler(rPID, pkg.Payload())
@@ -496,7 +514,8 @@ Loop:
 		//drop the stream
 		_ = stream.Close()
 		_ = bh.peerReceiveStreamMgr.RemovePeerReceiveStream(rPID, stream.Conn(), stream)
-		bh.logger.Debugf("[Host] handle stream error found, drop the stream(remote pid:%s). %s", rPID, err.Error())
+		bh.logger.Debugf("[Host] handle stream error found, drop the stream(remote pid:%s). %s",
+			rPID, err.Error())
 	}
 }
 
@@ -537,7 +556,8 @@ LOOP:
 				if conn.IsClosed() {
 					break LOOP
 				}
-				bh.logger.Errorf("[Network][AcceptReceiveStreamLoop] accept receive stream failed, %s", err.Error())
+				bh.logger.Errorf("[Network][AcceptReceiveStreamLoop] accept receive stream failed, %s",
+					err.Error())
 				continue
 			}
 		}
@@ -596,8 +616,8 @@ func (bh *BasicHost) handleNewConn(conn network.Conn) (bool, error) {
 			_ = conn.Close()
 			return false, nil
 		}
-		bh.logger.Infof("[Host] exchange protocols supported success. (local_pid:%v,remote_pid: %s, protocols:%s)",
-			conn.LocalPeerID(), rPID, rProtocols)
+		bh.logger.Infof("[Host] exchange protocols supported success. "+
+			"(local_pid:%v,remote_pid: %s, protocols:%s)", conn.LocalPeerID(), rPID, rProtocols)
 		exchangeProtocol = true
 	}
 
@@ -681,7 +701,8 @@ func (bh *BasicHost) handleClosingConn(conn network.Conn) {
 	// clean all send streams of this connection
 	err := bh.peerSendStreamPoolMgr.RemovePeerConnAndCloseSendStreamPool(rPID, conn)
 	if err != nil {
-		bh.logger.Errorf("[host] remove peer connection and close send stream pool failed, %s (remote pid: %s)", err.Error(), rPID)
+		bh.logger.Errorf("[host] remove peer connection and close send stream pool failed, %s (remote pid: %s)",
+			err.Error(), rPID)
 	}
 	// clean all receive streams of this connection
 	_ = bh.peerReceiveStreamMgr.ClosePeerReceiveStreams(rPID, conn)
@@ -716,6 +737,11 @@ func (bh *BasicHost) CheckClosedConnWithErr(conn network.Conn, err error) bool {
 // Context of the host instance.
 func (bh *BasicHost) Context() context.Context {
 	return bh.ctx
+}
+
+// PrivateKey of the crypto private key.
+func (bh *BasicHost) PrivateKey() crypto.PrivateKey {
+	return bh.sk
 }
 
 // ID is local peer id.

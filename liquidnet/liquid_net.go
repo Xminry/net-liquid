@@ -24,6 +24,7 @@ import (
 	lHost "chainmaker.org/chainmaker/chainmaker-net-liquid/host"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/pubsub"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/tlssupport"
+	"chainmaker.org/chainmaker/common/crypto/asym"
 	cmx509 "chainmaker.org/chainmaker/common/crypto/x509"
 	commonPb "chainmaker.org/chainmaker/pb-go/common"
 	"chainmaker.org/chainmaker/pb-go/syscontract"
@@ -781,12 +782,20 @@ func (l *LiquidNet) Start() error {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 
+	var err error
+
 	if l.startUp {
 		return ErrorNetRunning
 	}
 
 	// confirm config
 	l.confirmConfig()
+
+	// load private key
+	l.hostCfg.PrivateKey, err = asym.PrivateKeyFromPEM(l.cryptoCfg.KeyBytes, nil)
+	if err != nil {
+		return err
+	}
 
 	// confirm network type
 	var netType lHost.NetworkType
@@ -799,7 +808,7 @@ func (l *LiquidNet) Start() error {
 	log.Infof("[LiquidNet] network type: %s", netType)
 
 	// set upt chain trust roots
-	err := l.setUpChainTrustRoots()
+	err = l.setUpChainTrustRoots()
 	if err != nil {
 		return err
 	}

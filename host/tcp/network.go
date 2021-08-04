@@ -9,7 +9,6 @@ package tcp
 import (
 	"context"
 	"crypto/tls"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"net"
@@ -26,7 +25,6 @@ import (
 	mafmt "github.com/multiformats/go-multiaddr-fmt"
 	manet "github.com/multiformats/go-multiaddr/net"
 	"github.com/tjfoc/gmsm/gmtls"
-	gmx509 "github.com/tjfoc/gmsm/x509"
 )
 
 const (
@@ -225,7 +223,8 @@ func NewNetwork(ctx context.Context, logger api.Logger, opt ...Option) (*tcpNetw
 	}
 
 	if n.lPID == "" {
-		if !n.enableTls {
+		return nil, ErrLocalPidNotSet
+		/*if !n.enableTls {
 			return nil, ErrLocalPidNotSet
 		}
 		if n.useGMTls {
@@ -258,7 +257,7 @@ func NewNetwork(ctx context.Context, logger api.Logger, opt ...Option) (*tcpNetw
 
 		if n.lPID == "" {
 			return nil, ErrEmptyLocalPeerId
-		}
+		}*/
 	}
 
 	return n, nil

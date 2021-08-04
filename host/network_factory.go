@@ -12,6 +12,7 @@ import (
 	"errors"
 
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
+	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/host/quic"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/host/tcp"
@@ -41,7 +42,9 @@ var (
 type Option func(cfg *networkConfig) error
 
 type networkConfig struct {
-	ctx         context.Context
+	ctx  context.Context
+	lPid peer.ID
+
 	tlsCfg      *tls.Config
 	loadPidFunc types.LoadPeerIdFromTlsCertFunc
 	enableTls   bool
@@ -68,6 +71,14 @@ func (c *networkConfig) apply(opt ...Option) error {
 func WithCtx(ctx context.Context) Option {
 	return func(c *networkConfig) error {
 		c.ctx = ctx
+		return nil
+	}
+}
+
+// WithLocalPID designate the local peer.ID of network.
+func WithLocalPID(pid peer.ID) Option {
+	return func(c *networkConfig) error {
+		c.lPid = pid
 		return nil
 	}
 }
@@ -153,7 +164,11 @@ func newQuicNetwork(cfg *networkConfig, logger api.Logger) (network.Network, err
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	return quic.NewNetwork(ctx, logger, quic.WithTlsCfg(cfg.qTlsCfg), quic.WithLoadPidFunc(cfg.loadPidFuncQ))
+	return quic.NewNetwork(ctx, logger,
+		quic.WithTlsCfg(cfg.qTlsCfg),
+		quic.WithLoadPidFunc(cfg.loadPidFuncQ),
+		quic.WithLocalPeerId(cfg.lPid),
+	)
 }
 
 // newTcpNetwork create a network with tcp transport.
@@ -170,6 +185,7 @@ func newTcpNetwork(cfg *networkConfig, logger api.Logger) (network.Network, erro
 		tcp.WithLoadPidFuncGm(cfg.loadPidFuncGm),
 		tcp.WithGMTlsServerCfg(cfg.gmTlsServerCfg),
 		tcp.WithGMTlsClientCfg(cfg.gmTlsClientCfg),
+		tcp.WithLocalPeerId(cfg.lPid),
 	)
 }
 

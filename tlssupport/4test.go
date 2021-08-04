@@ -54,6 +54,7 @@ func CreateHostWithCrypto(
 		ListenAddresses:           addrs,
 		DirectPeers:               seeds,
 		MsgCompress:               false,
+		PrivateKey:                privateKey,
 	}
 	h, err := hostCfg.NewHost(host2.TcpNetwork, context.Background(), logger)
 	if err != nil {

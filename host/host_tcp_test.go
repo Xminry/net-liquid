@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package host
 
 import (
+	"chainmaker.org/chainmaker/common/crypto/asym"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -37,6 +38,10 @@ func CreateHostTCP(idx int, seeds map[peer.ID]ma.Multiaddr) (host.Host, error) {
 	certPool := x509.NewCertPool()
 	for i := range certPEMs {
 		certPool.AppendCertsFromPEM(certPEMs[i])
+	}
+	sk, err := asym.PrivateKeyFromPEM(keyPEMs[idx], nil)
+	if err != nil {
+		return nil, err
 	}
 	tlsCert, err := tls.X509KeyPair(certPEMs[idx], keyPEMs[idx])
 	if err != nil {
@@ -74,6 +79,7 @@ func CreateHostTCP(idx int, seeds map[peer.ID]ma.Multiaddr) (host.Host, error) {
 		DirectPeers:               seeds,
 		MsgCompress:               false,
 		Insecurity:                false,
+		PrivateKey:                sk,
 	}
 
 	return hostCfg.NewHost(TcpNetwork, context.Background(), logger.NewLogPrinter("HOST"+strconv.Itoa(idx)))

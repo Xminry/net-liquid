@@ -17,6 +17,7 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/store"
+	"chainmaker.org/chainmaker/common/crypto"
 	ma "github.com/multiformats/go-multiaddr"
 )
 
@@ -32,6 +33,9 @@ type Host interface {
 
 	// Context of the host instance.
 	Context() context.Context
+
+	// PrivateKey of the crypto private key.
+	PrivateKey() crypto.PrivateKey
 
 	// ID is local peer id.
 	ID() peer.ID
