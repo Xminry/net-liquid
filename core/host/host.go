@@ -57,7 +57,7 @@ type Host interface {
 	// CheckClosedConnWithErr return whether the connection has closed.
 	// If conn.IsClosed() is true, return true.
 	// If err contains closed info, return true.
-	// Otherwise return false.
+	// Otherwise, return false.
 	CheckClosedConnWithErr(conn network.Conn, err error) bool
 
 	// PeerStore return the store.PeerStore instance of the host.
@@ -74,12 +74,12 @@ type Host interface {
 
 	// PeerProtocols query peer.ID and the protocol.ID list supported by peer.
 	// If protocolIDs is nil ,return the list of all connected to us.
-	// Otherwise return the list of part of all which support the protocols
+	// Otherwise, return the list of part of all which support the protocols
 	// that id contains in the given protocolIDs.
 	PeerProtocols(protocolIDs []protocol.ID) ([]*PeerProtocols, error)
 
 	// IsPeerSupportProtocol return true if peer which id is the given pid
-	// support the given protocol. Otherwise return false.
+	// support the given protocol. Otherwise, return false.
 	IsPeerSupportProtocol(pid peer.ID, protocolID protocol.ID) bool
 
 	// Notify registers a Notifiee to host.

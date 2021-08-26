@@ -78,7 +78,7 @@ func WithTimeout(timeout time.Duration) discovery.Option {
 	}
 }
 
-// WithQuerySize set a int value as default query size for finding peers.
+// WithQuerySize set an int value as default query size for finding peers.
 func WithQuerySize(size int) discovery.Option {
 	return func(options *discovery.Options) error {
 		options.Opts[optKeyQuerySize] = size
@@ -106,7 +106,7 @@ func WithLogger(logger api.Logger) Option {
 	}
 }
 
-// WithMaxQuerySize set a int value as default max query size for finding peers.
+// WithMaxQuerySize set an int value as default max query size for finding peers.
 func WithMaxQuerySize(max int) Option {
 	return func(d *ProtocolBasedDiscovery) error {
 		d.maxQuerySize = max
@@ -157,7 +157,7 @@ func NewProtocolBasedDiscovery(host host.Host, opts ...Option) (*ProtocolBasedDi
 		maxQuerySize:          DefaultMaxQuerySize,
 		defaultQueryTimeout:   0,
 		findingTickerInterval: DefaultFindingHeartbeat,
-		logger:                logger.NewLogPrinter(""),
+		logger:                logger.NilLogger,
 	}
 	if err := d.applyOptions(opts...); err != nil {
 		return nil, err
@@ -245,7 +245,7 @@ func (d *ProtocolBasedDiscovery) handlerFindRes(serviceName string, msg *pb.Disc
 		pInfo := msg.PInfos[i]
 		pid := peer.ID(pInfo.Pid)
 		if d.host.ConnMgr().IsConnected(pid) || !d.host.ConnMgr().IsAllowed(pid) || d.host.ID() == pid {
-			// if peer connected or not allowed or myself, ignore.
+			// if peer connected or not allowed or its myself, ignore.
 			continue
 		}
 		// push addr to finding out chan
@@ -291,7 +291,7 @@ func (d *ProtocolBasedDiscovery) createProtocolMsgHandler(serviceName string, pr
 	}
 }
 
-// Announce tell other peers that I have support a new service with name given.
+// Announce tell other peers that I have supported a new service with name given.
 func (d *ProtocolBasedDiscovery) Announce(_ context.Context, serviceName string, _ ...discovery.Option) error {
 	serviceName = strings.TrimSpace(serviceName)
 	// create protocol ID
@@ -299,9 +299,9 @@ func (d *ProtocolBasedDiscovery) Announce(_ context.Context, serviceName string,
 	_, ok := d.svcMap.Load(serviceName)
 	if !ok {
 		// create protocol msg handler
-		handler := d.createProtocolMsgHandler(serviceName, protoID)
+		h := d.createProtocolMsgHandler(serviceName, protoID)
 		// register discovery protocol to host
-		err := d.host.RegisterMsgPayloadHandler(protoID, handler)
+		err := d.host.RegisterMsgPayloadHandler(protoID, h)
 		if err != nil {
 			return err
 		}
@@ -318,10 +318,12 @@ func (d *ProtocolBasedDiscovery) Announce(_ context.Context, serviceName string,
 	}
 	msg := &pb.DiscoveryMsg{
 		Type: pb.DiscoveryMsg_Announce,
-		PInfos: []*pb.PeerInfo{&pb.PeerInfo{
-			Pid:  d.host.ID().ToString(),
-			Addr: "",
-		}},
+		PInfos: []*pb.PeerInfo{
+			{
+				Pid:  d.host.ID().ToString(),
+				Addr: "",
+			},
+		},
 	}
 	msgBytes, err := proto.Marshal(msg)
 	if err != nil {

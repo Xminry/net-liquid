@@ -513,7 +513,7 @@ func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
 				// tls cert exist, parse to cert
 				cert, err := qx509.ParseCertificate(bytes)
 				if err != nil {
-					log.Errorf("[LiquidNet] [ReVerifyTrustRoots] reverify quic tls cert failed. %s", err.Error())
+					log.Errorf("[LiquidNet] [ReVerifyTrustRoots] re-verify quic tls cert failed. %s", err.Error())
 					continue
 				}
 				// whether verify failed, if failed remove it
@@ -528,7 +528,7 @@ func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
 				// tls cert exist, parse to cert
 				cert, err := gmx509.ParseCertificate(bytes)
 				if err != nil {
-					log.Errorf("[LiquidNet] [ReVerifyTrustRoots] reverify tls cert failed. %s", err.Error())
+					log.Errorf("[LiquidNet] [ReVerifyTrustRoots] re-verify tls cert failed. %s", err.Error())
 					continue
 				}
 				// whether verify failed, if failed remove it
@@ -542,7 +542,7 @@ func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
 			// tls cert exist, parse to cert
 			cert, err := x509.ParseCertificate(bytes)
 			if err != nil {
-				log.Errorf("[LiquidNet] [ReVerifyTrustRoots] reverify tls cert failed. %s", err.Error())
+				log.Errorf("[LiquidNet] [ReVerifyTrustRoots] re-verify tls cert failed. %s", err.Error())
 				continue
 			}
 			// whether verify failed, if failed remove it
@@ -561,7 +561,7 @@ func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
 		if l.hostCfg.NetType == lHost.QuicNetwork {
 			cert, err := qx509.ParseCertificate(bytes)
 			if err != nil {
-				log.Errorf("[LiquidNet] [ReVerifyTrustRoots] reverify quic tls cert failed. %s", err.Error())
+				log.Errorf("[LiquidNet] [ReVerifyTrustRoots] re-verify quic tls cert failed. %s", err.Error())
 				continue
 			}
 			// whether verify success, if success add it
@@ -574,7 +574,7 @@ func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
 		if l.hostCfg.UseGMTls {
 			cert, err := gmx509.ParseCertificate(bytes)
 			if err != nil {
-				log.Errorf("[LiquidNet] [ReVerifyTrustRoots] reverify tls cert failed. %s", err.Error())
+				log.Errorf("[LiquidNet] [ReVerifyTrustRoots] re-verify tls cert failed. %s", err.Error())
 				continue
 			}
 			// whether verify success, if success add it
@@ -586,7 +586,7 @@ func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
 		}
 		cert, err := x509.ParseCertificate(bytes)
 		if err != nil {
-			log.Errorf("[LiquidNet] [ReVerifyTrustRoots] reverify tls cert failed. %s", err.Error())
+			log.Errorf("[LiquidNet] [ReVerifyTrustRoots] re-verify tls cert failed. %s", err.Error())
 			continue
 		}
 		// whether verify success, if success add it

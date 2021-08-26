@@ -62,10 +62,10 @@ type HostConfig struct {
 	TlsCfg *tls.Config
 	// LoadPidFunc is a function which type is types.LoadPeerIdFromTlsCertFunc, used to load peer.ID from x509 certs.
 	LoadPidFunc types.LoadPeerIdFromTlsCertFunc
-	// QTlsCfg is the configuration for both quic tls server and client.
+	// QTlsCfg is the configuration for both QUIC tls server and client.
 	QTlsCfg *tls.Config
 	// LoadPidFunc is a function which type is types.LoadPeerIdFromQTlsCertFunc,
-	// used to load peer.ID from quic x509 certs.
+	// used to load peer.ID from QUIC x509 certs.
 	LoadPidFuncQ types.LoadPeerIdFromQTlsCertFunc
 	// GMTlsServerCfg is the configuration for gm tls server.
 	GMTlsServerCfg *gmtls.Config
@@ -76,9 +76,9 @@ type HostConfig struct {
 	LoadPidFuncGm types.LoadPeerIdFromGMTlsCertFunc
 	// UseGMTls decides whether to use gm tls security.
 	UseGMTls bool
-	// SendStreamPoolInitSize is the size of send streams will be created when a send stream pool initialing.
+	// SendStreamPoolInitSize is the size of sending streams will be created when a sending stream pool initialing.
 	SendStreamPoolInitSize int32
-	// SendStreamPoolCap is the max size of the send stream pool of each conn.
+	// SendStreamPoolCap is the max size of the sending stream pool of each conn.
 	SendStreamPoolCap int32
 	// PeerReceiveStreamMaxCount is the max limit count of receive streams for each peer.
 	PeerReceiveStreamMaxCount int32
@@ -90,9 +90,9 @@ type HostConfig struct {
 	ConnEliminationStrategy int
 	// ListenAddresses is the local addresses for listeners listening.
 	ListenAddresses []ma.Multiaddr
-	// DirectPeers stores the peer.ID and it's remote address of peers need keeping connected.
+	// DirectPeers stores the peer.ID and its remote address of peers need keeping connected.
 	// ConnSupervisor will check the connection stat of these peers.
-	// If any one disconnected to us, supervisor will try to dial to it auto.
+	// If anyone disconnected to us, supervisor will try to dial to it automatically.
 	DirectPeers map[peer.ID]ma.Multiaddr
 	// BlackNetAddr is the list of net addresses that will be appended into blacklist.
 	// e.g. "127.0.0.1","127.0.0.1:8080","[::1]","[::1]:8080"
@@ -222,7 +222,7 @@ func (c *HostConfig) NewHost(networkType NetworkType, ctx context.Context, logge
 
 var _ host.Host = (*BasicHost)(nil)
 
-// BasicHost is a implementation of host.Host interface.
+// BasicHost is an implementation of host.Host interface.
 // BasicHost can build a network with the same one of different implementations of network.Network.
 // It provides connections management and streams management and protocol management.
 // It uses a mgr.ConnSupervisor to maintain the stat of connections with necessary directed peers.
@@ -324,14 +324,14 @@ func (bh *BasicHost) UnregisterMsgPayloadHandler(protocolID protocol.ID) error {
 }
 
 // IsPeerSupportProtocol return true if peer which id is the given pid support the given protocol.
-// Otherwise return false.
+// Otherwise, return false.
 func (bh *BasicHost) IsPeerSupportProtocol(pid peer.ID, protocolID protocol.ID) bool {
 	return bh.protocolMgr.IsPeerSupported(pid, protocolID)
 }
 
 // PeerProtocols query peer.ID and the protocol.ID list supported by peer.
 // If protocolIDs is nil ,return the list of all connected to us.
-// Otherwise return the list of part of all which support the protocols that id contains in the given protocolIDs.
+// Otherwise, return the list of part of all which support the protocols that id contains in the given protocolIDs.
 func (bh *BasicHost) PeerProtocols(protocolIDs []protocol.ID) ([]*host.PeerProtocols, error) {
 	res := make([]*host.PeerProtocols, 0)
 	pids := bh.connMgr.AllPeer()
@@ -840,7 +840,7 @@ func (bh *BasicHost) LocalAddresses() []ma.Multiaddr {
 
 // notifyPeerHandlers called when peer connected or disconnected
 func (bh *BasicHost) notifyPeerHandlers(pid peer.ID, isConnected bool) {
-	// call all notifees
+	// call all notifee
 	bh.notifiee.Range(func(key, _ interface{}) bool {
 		notifiee, _ := key.(host.Notifiee)
 		if isConnected {
