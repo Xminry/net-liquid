@@ -3,7 +3,7 @@ module chainmaker.org/chainmaker/chainmaker-net-liquid
 go 1.15
 
 require (
-	chainmaker.org/chainmaker/chainmaker-net-common v0.0.3
+	chainmaker.org/chainmaker/chainmaker-net-common v0.0.4
 	chainmaker.org/chainmaker/common v0.0.0-20210810101555-5171003a966f
 	chainmaker.org/chainmaker/pb-go v0.0.0-20210809024420-84332310603e
 	chainmaker.org/chainmaker/protocol v0.0.0-20210810102152-513d451f8f2d

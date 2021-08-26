@@ -34,6 +34,7 @@ import (
 	"github.com/tjfoc/gmsm/gmtls"
 	gmx509 "github.com/tjfoc/gmsm/x509"
 	qx509 "github.com/xiaotianfork/q-tls-common/x509"
+	"time"
 
 	"context"
 	"crypto/x509"
@@ -662,6 +663,16 @@ func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
 			l.peerIdChainIdsRecorder.AddPeerChainId(pid, chainId)
 			log.Infof("[LiquidNet] [ReVerifyTrustRoots] add peer to chain, (pid: %s, chain id: %s)",
 				pid, chainId)
+		}
+	}
+
+	// close all connections of peers not belong to any chain
+	for _, s := range l.peerIdChainIdsRecorder.PeerIdsOfNoChain() {
+		pid := peer.ID(s)
+		for c := l.host.ConnMgr().GetPeerConn(pid); c != nil; c = l.host.ConnMgr().GetPeerConn(pid) {
+			_ = c.Close()
+			log.Infof("[LiquidNet] [ReVerifyTrustRoots] close connection of peer %s", s)
+			time.Sleep(time.Second)
 		}
 	}
 }
