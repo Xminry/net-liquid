@@ -2,8 +2,8 @@ package util
 
 import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/common/crypto"
-	"chainmaker.org/chainmaker/common/helper"
+	"chainmaker.org/chainmaker/common/v2/crypto"
+	"chainmaker.org/chainmaker/common/v2/helper"
 )
 
 // ResolvePIDFromCertDER load the peer.ID from cert der bytes.

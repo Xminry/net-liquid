@@ -13,9 +13,9 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/host"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
 	host2 "chainmaker.org/chainmaker/chainmaker-net-liquid/host"
-	"chainmaker.org/chainmaker/common/crypto"
-	"chainmaker.org/chainmaker/common/crypto/asym"
-	api "chainmaker.org/chainmaker/protocol"
+	"chainmaker.org/chainmaker/common/v2/crypto"
+	"chainmaker.org/chainmaker/common/v2/crypto/asym"
+	api "chainmaker.org/chainmaker/protocol/v2"
 	ma "github.com/multiformats/go-multiaddr"
 )
 

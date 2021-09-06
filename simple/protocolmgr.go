@@ -23,7 +23,7 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/store"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/util"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/simple/pb"
-	api "chainmaker.org/chainmaker/protocol"
+	api "chainmaker.org/chainmaker/protocol/v2"
 	"github.com/gogo/protobuf/proto"
 )
 

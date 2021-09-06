@@ -21,7 +21,7 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/util"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/discovery/protocoldiscovery/pb"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/logger"
-	api "chainmaker.org/chainmaker/protocol"
+	api "chainmaker.org/chainmaker/protocol/v2"
 	"github.com/gogo/protobuf/proto"
 	ma "github.com/multiformats/go-multiaddr"
 )

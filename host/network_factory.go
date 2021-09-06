@@ -16,7 +16,7 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/host/quic"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/host/tcp"
-	api "chainmaker.org/chainmaker/protocol"
+	api "chainmaker.org/chainmaker/protocol/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/tjfoc/gmsm/gmtls"
 )

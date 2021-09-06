@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package host
 
 import (
-	"chainmaker.org/chainmaker/common/crypto/asym"
+	"chainmaker.org/chainmaker/common/v2/crypto/asym"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -20,7 +20,7 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/logger"
-	"chainmaker.org/chainmaker/common/helper"
+	"chainmaker.org/chainmaker/common/v2/helper"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
 )

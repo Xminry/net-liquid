@@ -20,7 +20,7 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/reuse"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/util"
-	api "chainmaker.org/chainmaker/protocol"
+	api "chainmaker.org/chainmaker/protocol/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	mafmt "github.com/multiformats/go-multiaddr-fmt"
 	manet "github.com/multiformats/go-multiaddr/net"

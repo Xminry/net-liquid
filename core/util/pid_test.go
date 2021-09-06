@@ -4,7 +4,7 @@ import (
 	"encoding/pem"
 	"testing"
 
-	"chainmaker.org/chainmaker/common/crypto/asym"
+	"chainmaker.org/chainmaker/common/v2/crypto/asym"
 	"github.com/stretchr/testify/require"
 )
 

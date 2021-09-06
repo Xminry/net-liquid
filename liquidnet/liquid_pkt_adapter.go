@@ -11,7 +11,7 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/host"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
-	api "chainmaker.org/chainmaker/protocol"
+	api "chainmaker.org/chainmaker/protocol/v2"
 
 	"sync"
 )

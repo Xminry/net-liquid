@@ -23,9 +23,9 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/util"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/logger"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/tlssupport"
-	"chainmaker.org/chainmaker/common/crypto"
-	"chainmaker.org/chainmaker/common/crypto/asym"
-	"chainmaker.org/chainmaker/common/helper"
+	"chainmaker.org/chainmaker/common/v2/crypto"
+	"chainmaker.org/chainmaker/common/v2/crypto/asym"
+	"chainmaker.org/chainmaker/common/v2/helper"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
 )

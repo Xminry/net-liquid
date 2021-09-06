@@ -12,7 +12,7 @@ import (
 	"errors"
 
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/common/helper"
+	"chainmaker.org/chainmaker/common/v2/helper"
 	gmx509 "github.com/tjfoc/gmsm/x509"
 	qx509 "github.com/xiaotianfork/q-tls-common/x509"
 )

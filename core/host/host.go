@@ -17,7 +17,7 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/store"
-	"chainmaker.org/chainmaker/common/crypto"
+	"chainmaker.org/chainmaker/common/v2/crypto"
 	ma "github.com/multiformats/go-multiaddr"
 )
 

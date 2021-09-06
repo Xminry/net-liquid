@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package quic
 
 import (
-	api "chainmaker.org/chainmaker/protocol"
 	"context"
 	"crypto/tls"
 	"errors"
@@ -21,6 +20,7 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/util"
+	api "chainmaker.org/chainmaker/protocol/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	mafmt "github.com/multiformats/go-multiaddr-fmt"
 	manet "github.com/multiformats/go-multiaddr/net"

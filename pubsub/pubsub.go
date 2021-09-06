@@ -21,7 +21,7 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/pubsub/pb"
-	api "chainmaker.org/chainmaker/protocol"
+	api "chainmaker.org/chainmaker/protocol/v2"
 )
 
 const (

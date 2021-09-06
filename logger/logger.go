@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 
 package logger
 
-import api "chainmaker.org/chainmaker/protocol"
+import api "chainmaker.org/chainmaker/protocol/v2"
 
 // NilLogger is a nil implementation of Logger interface.
 // It will log nothing.

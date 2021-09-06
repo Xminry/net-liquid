@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package liquidnet
 
 import (
-	nApi "chainmaker.org/chainmaker/chainmaker-net-common/api"
 	"chainmaker.org/chainmaker/chainmaker-net-common/common"
 	"chainmaker.org/chainmaker/chainmaker-net-common/common/priorityblocker"
 	netGMTls "chainmaker.org/chainmaker/chainmaker-net-common/gmtlssupport"
@@ -24,17 +23,17 @@ import (
 	lHost "chainmaker.org/chainmaker/chainmaker-net-liquid/host"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/pubsub"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/tlssupport"
-	"chainmaker.org/chainmaker/common/crypto/asym"
-	cmx509 "chainmaker.org/chainmaker/common/crypto/x509"
-	commonPb "chainmaker.org/chainmaker/pb-go/common"
-	"chainmaker.org/chainmaker/pb-go/syscontract"
-	api "chainmaker.org/chainmaker/protocol"
+	"chainmaker.org/chainmaker/common/v2/crypto/asym"
+	cmx509 "chainmaker.org/chainmaker/common/v2/crypto/x509"
+	pbac "chainmaker.org/chainmaker/pb-go/v2/accesscontrol"
+	commonPb "chainmaker.org/chainmaker/pb-go/v2/common"
+	"chainmaker.org/chainmaker/pb-go/v2/syscontract"
+	api "chainmaker.org/chainmaker/protocol/v2"
 	"github.com/gogo/protobuf/proto"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/tjfoc/gmsm/gmtls"
 	gmx509 "github.com/tjfoc/gmsm/x509"
 	qx509 "github.com/xiaotianfork/q-tls-common/x509"
-	"time"
 
 	"context"
 	"crypto/x509"
@@ -43,6 +42,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 )
 
 var log api.Logger
@@ -93,7 +93,7 @@ func InitLogger(globalNetLogger api.Logger, pubSubLogCreator func(chainId string
 	pubSubLoggerCreator = pubSubLogCreator
 }
 
-var _ nApi.Net = (*LiquidNet)(nil)
+var _ api.Net = (*LiquidNet)(nil)
 
 // LiquidNet is an implementation of Net interface with liquid.
 type LiquidNet struct {
@@ -109,8 +109,8 @@ type LiquidNet struct {
 	psCfg   *pubSubConfig
 	psMap   sync.Map //map[string]broadcast.PubSub
 
-	cryptoCfg       *cryptoConfig
-	revokeValidator *common.RevokedValidator
+	cryptoCfg             *cryptoConfig
+	memberStatusValidator *common.MemberStatusValidator
 
 	tlsChainTrustRoots *netTls.ChainTrustRoots
 	tlsCertValidator   *netTls.CertValidator
@@ -165,11 +165,11 @@ func NewLiquidNet() (*LiquidNet, error) {
 			CertBytes:                nil,
 			ChainTrustRootCertsBytes: make(map[string][][]byte),
 		},
-		revokeValidator:    common.NewRevokedValidator(),
-		subscribeTopic:     &types.StringSet{},
-		extensionsCfg:      &extensionsConfig{EnablePkt: false},
-		pktAdapter:         nil,
-		priorityController: nil,
+		memberStatusValidator: common.NewMemberStatusValidator(),
+		subscribeTopic:        &types.StringSet{},
+		extensionsCfg:         &extensionsConfig{EnablePkt: false},
+		pktAdapter:            nil,
+		priorityController:    nil,
 	}
 	liquidNet.peerIdChainIdsRecorder = common.NewPeerIdChainIdsRecorder(log)
 	liquidNet.certIdPeerIdMapper = common.NewCertIdPeerIdMapper(log)
@@ -780,7 +780,7 @@ func (l *LiquidNet) setUpGMTlsConfig() error {
 	l.peerIdTlsCertStore.SetPeerTlsCert(peerId, gmTlsEncryptCert.Certificate[0])
 
 	// gm tls cert validator
-	l.gmTlsCertValidator = netGMTls.NewCertValidator(l.gmTlsChainTrustRoots, l.revokeValidator)
+	l.gmTlsCertValidator = netGMTls.NewCertValidator(l.gmTlsChainTrustRoots, l.memberStatusValidator)
 
 	// gm tls config for server/client
 	var tlsServerCfg, tlsClientCfg *gmtls.Config
@@ -820,7 +820,7 @@ func (l *LiquidNet) setUpTlsConfig() error {
 	}
 	l.peerIdTlsCertStore.SetPeerTlsCert(peerId, tlsCert.Certificate[0])
 	// tls cert validator
-	tcv := netTls.NewCertValidator(l.tlsChainTrustRoots, l.revokeValidator)
+	tcv := netTls.NewCertValidator(l.tlsChainTrustRoots, l.memberStatusValidator)
 	l.tlsCertValidator = tcv
 	//tls config
 	tlsConfig, err := netTls.NewTlsConfig(
@@ -844,7 +844,7 @@ func (l *LiquidNet) setUpQTlsConfig() error {
 	}
 	l.peerIdTlsCertStore.SetPeerTlsCert(peerId, tlsCert.Certificate[0])
 	// tls cert validator
-	tcv := qTls.NewCertValidator(l.qTlsChainTrustRoots, l.revokeValidator)
+	tcv := qTls.NewCertValidator(l.qTlsChainTrustRoots, l.memberStatusValidator)
 	l.qTlsCertValidator = tcv
 	//tls config
 	tlsConfig, err := qTls.NewTlsConfig(
@@ -1187,8 +1187,21 @@ func (l *LiquidNet) checkRevokeThenDisconnect(
 	peerIdCertMap map[string]*cmx509.Certificate) error {
 	for _, param := range payload.Parameters {
 		if param.Key == "cert_crl" {
-			crl := strings.Replace(string(param.Value), ",", "\n", -1)
-			crls, err := ac.ValidateCRL([]byte(crl))
+			crlStr := strings.Replace(string(param.Value), ",", "\n", -1)
+			_, err := ac.VerifyRelatedMaterial(pbac.VerifyType_CRL, []byte(crlStr))
+			if err != nil {
+				log.Errorf("[LiquidNet] [checkRevokeThenDisconnect] validate crl failed, %s", err.Error())
+				return err
+			}
+
+			var crls []*pkix.CertificateList
+
+			crl, err := x509.ParseCRL([]byte(crlStr))
+			if err != nil {
+				log.Errorf("[LiquidNet] [checkRevokeThenDisconnect] validate crl failed, %s", err.Error())
+				return err
+			}
+			crls = append(crls, crl)
 			if err != nil {
 				log.Errorf("[LiquidNet] [checkRevokeThenDisconnect] validate crl failed, %s", err.Error())
 				return err
@@ -1222,7 +1235,7 @@ func (l *LiquidNet) closeRevokedPeerConnection(revokedPeerIds []string) error {
 		pid := revokedPeerIds[idx]
 		log.Infof("[LiquidNet] [closeRevokedPeerConnection] revoked peer found(pid: %s)", pid)
 		peerId := peer.ID(pid)
-		l.revokeValidator.AddPeerId(pid)
+		l.memberStatusValidator.AddPeerId(pid)
 		if l.host.ConnMgr().IsConnected(peerId) {
 			conn := l.host.ConnMgr().GetPeerConn(peerId)
 			_ = conn.Close()
@@ -1234,13 +1247,13 @@ func (l *LiquidNet) closeRevokedPeerConnection(revokedPeerIds []string) error {
 
 // AddAC add a AccessControlProvider for revoked validator.
 func (l *LiquidNet) AddAC(chainId string, ac api.AccessControlProvider) {
-	l.revokeValidator.AddAC(chainId, ac)
+	l.memberStatusValidator.AddAC(chainId, ac)
 }
 
 // SetMsgPriority set the priority of the msg flag.
 // If priority control disabled, it is no-op.
-func (l *LiquidNet) SetMsgPriority(msgFlag string, priority priorityblocker.Priority) {
+func (l *LiquidNet) SetMsgPriority(msgFlag string, priority uint8) {
 	if l.priorityController != nil {
-		l.priorityController.SetPriority(msgFlag, priority)
+		l.priorityController.SetPriority(msgFlag, priorityblocker.Priority(priority))
 	}
 }
