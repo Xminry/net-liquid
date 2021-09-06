@@ -612,7 +612,7 @@ func (bh *BasicHost) handleNewConn(conn network.Conn) (bool, error) {
 		rProtocols, err = bh.protocolExchanger.ExchangeProtocol(conn)
 		if err != nil {
 			bh.logger.Warnf("[Host] exchange supported protocols failed. err:%v.(local:%v,remote:%v)",
-				err, conn.LocalPeerID(), conn.RemotePeerID())
+				err.Error(), conn.LocalPeerID(), conn.RemotePeerID())
 			_ = conn.Close()
 			return false, nil
 		}
