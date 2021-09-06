@@ -701,10 +701,10 @@ func (l *LiquidNet) confirmConfig() {
 		log.Warnf("[LiquidNet] wrong max connection count value of each peer set, use default "+
 			"(set: %d, default: %d)",
 			hc.MaxConnCountEachPeerAllowed, DefaultMaxConnCountEachPeer)
-		hc.SendStreamPoolCap = DefaultSendStreamMaxCount
+		hc.MaxConnCountEachPeerAllowed = DefaultSendStreamMaxCount
 	}
 	if hc.PeerReceiveStreamMaxCount <= 0 {
-		recommended := hc.SendStreamPoolCap * hc.SendStreamPoolCap
+		recommended := hc.SendStreamPoolCap * int32(hc.MaxConnCountEachPeerAllowed)
 		log.Warnf("[LiquidNet] wrong receive stream max count value set, use recommended value "+
 			"(set: %d, recommended: %d)",
 			hc.PeerReceiveStreamMaxCount, recommended)
@@ -944,18 +944,6 @@ func (l *LiquidNet) Start() error {
 		return err
 	}
 
-	// set up discovery service
-	l.discoveryService, err = protocoldiscovery.NewProtocolBasedDiscovery(
-		l.host,
-		protocoldiscovery.WithLogger(log),
-		protocoldiscovery.WithMaxQuerySize(3),
-	)
-	if err != nil {
-		log.Errorf("[LiquidNet] set up discovery service failed, %s", err.Error())
-		return err
-	}
-	log.Info("[LiquidNet] discovery service set up.")
-
 	// start pub-sub
 	log.Info("[LiquidNet] pub-sub services attaching...")
 	l.psMap.Range(func(key, value interface{}) bool {
@@ -973,6 +961,18 @@ func (l *LiquidNet) Start() error {
 		return err
 	}
 	log.Info("[LiquidNet] pub-sub services attached.")
+
+	// set up discovery service
+	l.discoveryService, err = protocoldiscovery.NewProtocolBasedDiscovery(
+		l.host,
+		protocoldiscovery.WithLogger(log),
+		protocoldiscovery.WithMaxQuerySize(3),
+	)
+	if err != nil {
+		log.Errorf("[LiquidNet] set up discovery service failed, %s", err.Error())
+		return err
+	}
+	log.Info("[LiquidNet] discovery service set up.")
 	l.startUp = true
 	return err
 }
