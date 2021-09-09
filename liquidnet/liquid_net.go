@@ -512,60 +512,6 @@ func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
 		return
 	}
 
-	// re verify myself
-	removeSelf := false
-	myCertBytes, ok := peerIdTlsCertMap[l.GetNodeUid()]
-	if ok {
-		if l.hostCfg.NetType == lHost.QuicNetwork {
-			// tls cert exist, parse to cert
-			cert, err := qx509.ParseCertificate(myCertBytes)
-			if err != nil {
-				log.Errorf("[LiquidNet] [ReVerifyTrustRoots] re-verify quic tls cert failed. %s",
-					err.Error())
-				return
-			}
-			// whether verify failed, if failed remove it
-			if !l.qTlsChainTrustRoots.VerifyCertOfChain(chainId, cert) {
-				removeSelf = true
-			}
-			delete(peerIdTlsCertMap, l.GetNodeUid())
-		} else if l.hostCfg.UseGMTls {
-			// tls cert exist, parse to cert
-			cert, err := gmx509.ParseCertificate(myCertBytes)
-			if err != nil {
-				log.Errorf("[LiquidNet] [ReVerifyTrustRoots] parse tls cert failed. %s", err.Error())
-				return
-			}
-			// whether verify failed, if failed remove it
-			if !l.gmTlsChainTrustRoots.VerifyCertOfChain(chainId, cert) {
-				removeSelf = true
-			}
-			delete(peerIdTlsCertMap, l.GetNodeUid())
-		} else {
-			// tls cert exist, parse to cert
-			cert, err := x509.ParseCertificate(myCertBytes)
-			if err != nil {
-				log.Errorf("[LiquidNet] [ReVerifyTrustRoots] parse tls cert failed. %s", err.Error())
-				return
-			}
-			// whether verify failed, if failed remove it
-			if !l.tlsChainTrustRoots.VerifyCertOfChain(chainId, cert) {
-				removeSelf = true
-			}
-			delete(peerIdTlsCertMap, l.GetNodeUid())
-		}
-	}
-
-	if removeSelf {
-		log.Infof("[LiquidNet] [ReVerifyTrustRoots] remove myself from chain, (pid: %s, chain id: %s)",
-			l.GetNodeUid(), chainId)
-		existPeers := l.peerIdChainIdsRecorder.PeerIdsOfChain(chainId)
-		for _, existPeerId := range existPeers {
-			l.peerIdChainIdsRecorder.RemovePeerChainId(existPeerId, chainId)
-		}
-		return
-	}
-
 	// re verify exist peers
 	existPeers := l.peerIdChainIdsRecorder.PeerIdsOfChain(chainId)
 	for _, existPeerId := range existPeers {
