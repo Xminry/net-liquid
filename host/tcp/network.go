@@ -361,7 +361,7 @@ func (t *tcpNetwork) dial(ctx context.Context, remoteAddr ma.Multiaddr) (*conn, 
 	return tc, errs
 }
 
-// Dial try to establish a outbound connection with the remote address.
+// Dial try to establish an outbound connection with the remote address.
 func (t *tcpNetwork) Dial(ctx context.Context, remoteAddr ma.Multiaddr) (network.Conn, error) {
 	// check network listen state
 	if !t.listening {
@@ -391,6 +391,7 @@ func (t *tcpNetwork) Dial(ctx context.Context, remoteAddr ma.Multiaddr) (network
 	}
 	if remotePID != "" && tc.rPID != remotePID {
 		_ = tc.Close()
+		t.logger.Debugf("[Network][Dial] pid mismatch, expected: %s, got: %s, close the connection.", remotePID, tc.rPID)
 		return nil, ErrPidMismatch
 	}
 	// call conn handler

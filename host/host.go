@@ -763,12 +763,21 @@ func (bh *BasicHost) Dial(remoteAddr ma.Multiaddr) (network.Conn, error) {
 			// no address queried, return err
 			return nil, ErrPeerAddrNotFoundInPeerStore
 		}
-		// try to dial to each addresses found
+		// try to dial to each of addresses found
 		for i := range remoteAddresses {
 			addr := remoteAddresses[i]
+			tmpAddr, tmpPID := util.GetNetAddrAndPidFromNormalMultiAddr(addr)
+			if tmpPID == "" {
+				remoteAddr = util.CreateMultiAddrWithPidAndNetAddr(remotePID, tmpAddr)
+			} else {
+				if tmpPID != remotePID {
+					continue
+				}
+				remoteAddr = addr
+			}
 			bh.logger.Infof("[Host][Dial] try to connect to peer(remote pid: %s, addr: %s)",
-				remotePID, addr.String())
-			conn, err := bh.nw.Dial(context.Background(), addr)
+				remotePID, remoteAddr.String())
+			conn, err := bh.nw.Dial(context.Background(), remoteAddr)
 			if err != nil {
 				bh.logger.Warnf("[Host][Dial] connect to peer failed, %s (remote pid: %s, addr: %s)",
 					err.Error(), remotePID, addr.String())
@@ -783,7 +792,7 @@ func (bh *BasicHost) Dial(remoteAddr ma.Multiaddr) (network.Conn, error) {
 	// dial to remote
 	bh.logger.Infof("[Host][Dial] try to connect to peer(remote pid: %s, addr: %s)",
 		remotePID, rAddr.String())
-	conn, err := bh.nw.Dial(context.Background(), rAddr)
+	conn, err := bh.nw.Dial(context.Background(), remoteAddr)
 	if err != nil {
 		bh.logger.Warnf("[Host][Dial] connect to peer failed, %s (remote pid: %s, addr: %s)",
 			err.Error(), remotePID, rAddr.String())

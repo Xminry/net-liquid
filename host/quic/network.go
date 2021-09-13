@@ -379,7 +379,7 @@ func (q *qNetwork) dial(ctx context.Context, remoteAddr ma.Multiaddr) (*qConn, [
 	return qc, errs
 }
 
-// Dial try to establish a outbound connection with the remote address.
+// Dial try to establish an outbound connection with the remote address.
 func (q *qNetwork) Dial(ctx context.Context, remoteAddr ma.Multiaddr) (network.Conn, error) {
 	// check network listen state
 	if !q.listening {
@@ -410,6 +410,7 @@ func (q *qNetwork) Dial(ctx context.Context, remoteAddr ma.Multiaddr) (network.C
 	// whether remote peer.ID matched
 	if remotePID != "" && qc.rPID != remotePID {
 		_ = qc.Close()
+		q.logger.Debugf("[Network][Dial] pid mismatch, expected: %s, got: %s, close the connection.", remotePID, qc.rPID)
 		return nil, ErrPidMismatch
 	}
 	// call connection hanler

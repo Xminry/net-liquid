@@ -15,7 +15,6 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/host"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/mgr"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/util"
 	api "chainmaker.org/chainmaker/protocol/v2"
 	ma "github.com/multiformats/go-multiaddr"
 )
@@ -246,7 +245,7 @@ Loop:
 			break Loop
 		}
 		a.cs.logger.Infof("[ConnSupervisor] try to dial to peer(pid: %s,addr:%s)", a.peerId, a.peerAddr.String())
-		conn, err := a.cs.host.Dial(util.CreateMultiAddrWithPidAndNetAddr(a.peerId, a.peerAddr))
+		conn, err := a.cs.host.Dial(a.peerAddr)
 		select {
 		case <-a.cs.closeChan:
 			break Loop
