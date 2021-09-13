@@ -114,6 +114,8 @@ type ChainPubSub struct {
 
 	hostNotifiee *host.NotifieeBundle
 
+	blacklist sync.Map // map[peer.ID]struct{}
+
 	logger api.Logger
 }
 
@@ -152,6 +154,7 @@ func NewChainPubSub(chainId string, logger api.Logger, opts ...Option) *ChainPub
 		peeringMsgSeq:         uint64(utils.CurrentTimeMillisSeconds()) * 1000000,
 		msgBasket:             nil,
 		hostNotifiee:          &host.NotifieeBundle{},
+		blacklist:             sync.Map{},
 		logger:                logger,
 	}
 	cps.optionsApply(opts...)
@@ -167,7 +170,6 @@ func NewChainPubSub(chainId string, logger api.Logger, opts ...Option) *ChainPub
 		cps.ps,
 		cps.cfg.gossipMaxSendApplicationMsgSize,
 		cps.logger)
-
 	return cps
 }
 
@@ -312,6 +314,16 @@ func (p *ChainPubSub) sendPubSubMsg(
 	spreadMsg *pb.IHaveOrWant,
 	topicMsg *pb.TopicMsg,
 	peeringMsg *pb.PeeringMsg) error {
+
+	if _, ok := p.blacklist.Load(pid); ok {
+		p.logger.Debugf("[ChainPubSub] ignore app/spread-control msg sent to black peer.(receiver: %s)", pid)
+		appMsgs = nil
+		spreadMsg = nil
+		if topicMsg == nil && peeringMsg == nil {
+			return nil
+		}
+	}
+
 	// create pub-sub msg payload
 	payload, err := CreatePubSubMsgPayload(appMsgs, spreadMsg, topicMsg, peeringMsg)
 	if err != nil {
@@ -421,6 +433,13 @@ func (p *ChainPubSub) ProtocolMsgHandler() handler.MsgPayloadHandler {
 
 		// peering control msg
 		p.handlePeeringControlMsg(senderPID, psMsg.PeeringCtrl)
+
+		// whether sender was black peer
+		_, black := p.blacklist.Load(senderPID)
+		if black {
+			p.logger.Debugf("[ChainPubSub] ignore app/spread-control msg from black peer. (sender: %s)", senderPID)
+			return
+		}
 
 		// app msg
 		p.handleAppMessages(psMsg.Msg)
@@ -847,4 +866,12 @@ func isPeerInStations(pid peer.ID, appMsg *pb.ApplicationMsg) bool {
 		}
 	}
 	return false
+}
+
+func (p *ChainPubSub) SetBlackPeer(pid peer.ID) {
+	p.blacklist.LoadOrStore(pid, struct{}{})
+}
+
+func (p *ChainPubSub) RemoveBlackPeer(pid peer.ID) {
+	p.blacklist.LoadAndDelete(pid)
 }
