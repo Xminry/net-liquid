@@ -566,10 +566,11 @@ LOOP:
 }
 
 func (bh *BasicHost) handleNewConn(conn network.Conn) (bool, error) {
-	if bh.blacklist.IsBlack(conn) {
-		return false, ErrBlackPeer
-	}
 	rPID := conn.RemotePeerID()
+	if bh.blacklist.IsBlack(conn) {
+		bh.logger.Infof("[Host] connection in blacklist, close it. (remote pid:%s)", rPID)
+		return false, nil
+	}
 	v, loaded := bh.peerConnExclusiveMap.LoadOrStore(rPID, conn)
 	if loaded {
 		oldConn, _ := v.(network.Conn)
