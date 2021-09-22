@@ -107,7 +107,7 @@ type LiquidNet struct {
 	hostCfg *lHost.HostConfig
 	host    host.Host
 	psCfg   *pubSubConfig
-	psMap   sync.Map //map[string]broadcast.PubSub
+	psMap   sync.Map //map[string]broadcast.PubSub, map chainId -> broadcast.PubSub
 
 	cryptoCfg             *cryptoConfig
 	memberStatusValidator *common.MemberStatusValidator
@@ -496,6 +496,20 @@ func (l *LiquidNet) RefreshTrustRoots(chainId string, rootsCertsBytes [][]byte) 
 	return nil
 }
 
+func (l *LiquidNet) setChainPubSubBlackPeer(chainId string, pid peer.ID) {
+	v, bl := l.psMap.Load(chainId)
+	if bl {
+		v.(broadcast.PubSub).SetBlackPeer(pid)
+	}
+}
+
+func (l *LiquidNet) removeChainPubSubBlackPeer(chainId string, pid peer.ID) {
+	v, bl := l.psMap.Load(chainId)
+	if bl {
+		v.(broadcast.PubSub).RemoveBlackPeer(pid)
+	}
+}
+
 // ReVerifyTrustRoots will verify tls certs existed with the trust
 // roots pool of the chain which id is the given chainId.
 func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
@@ -530,6 +544,7 @@ func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
 					l.peerIdChainIdsRecorder.RemovePeerChainId(existPeerId, chainId)
 					log.Infof("[LiquidNet] [ReVerifyTrustRoots] remove peer from chain, (pid: %s, chain id: %s)",
 						existPeerId, chainId)
+					l.setChainPubSubBlackPeer(chainId, peer.ID(existPeerId))
 				}
 				delete(peerIdTlsCertMap, existPeerId)
 				continue
@@ -546,6 +561,7 @@ func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
 					l.peerIdChainIdsRecorder.RemovePeerChainId(existPeerId, chainId)
 					log.Infof("[LiquidNet] [ReVerifyTrustRoots] remove peer from chain, (pid: %s, chain id: %s)",
 						existPeerId, chainId)
+					l.setChainPubSubBlackPeer(chainId, peer.ID(existPeerId))
 				}
 				delete(peerIdTlsCertMap, existPeerId)
 				continue
@@ -561,12 +577,14 @@ func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
 				l.peerIdChainIdsRecorder.RemovePeerChainId(existPeerId, chainId)
 				log.Infof("[LiquidNet] [ReVerifyTrustRoots] remove peer from chain, (pid: %s, chain id: %s)",
 					existPeerId, chainId)
+				l.setChainPubSubBlackPeer(chainId, peer.ID(existPeerId))
 			}
 			delete(peerIdTlsCertMap, existPeerId)
 		} else {
 			l.peerIdChainIdsRecorder.RemovePeerChainId(existPeerId, chainId)
 			log.Infof("[LiquidNet] [ReVerifyTrustRoots] remove peer from chain, (pid: %s, chain id: %s)",
 				existPeerId, chainId)
+			l.setChainPubSubBlackPeer(chainId, peer.ID(existPeerId))
 		}
 	}
 	// verify other peers
@@ -582,6 +600,7 @@ func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
 				l.peerIdChainIdsRecorder.AddPeerChainId(pid, chainId)
 				log.Infof("[LiquidNet] [ReVerifyTrustRoots] add peer to chain, (pid: %s, chain id: %s)",
 					pid, chainId)
+				l.removeChainPubSubBlackPeer(chainId, peer.ID(pid))
 			}
 			continue
 		}
@@ -596,6 +615,7 @@ func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
 				l.peerIdChainIdsRecorder.AddPeerChainId(pid, chainId)
 				log.Infof("[LiquidNet] [ReVerifyTrustRoots] add peer to chain, (pid: %s, chain id: %s)",
 					pid, chainId)
+				l.removeChainPubSubBlackPeer(chainId, peer.ID(pid))
 			}
 			continue
 		}
@@ -609,6 +629,7 @@ func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
 			l.peerIdChainIdsRecorder.AddPeerChainId(pid, chainId)
 			log.Infof("[LiquidNet] [ReVerifyTrustRoots] add peer to chain, (pid: %s, chain id: %s)",
 				pid, chainId)
+			l.removeChainPubSubBlackPeer(chainId, peer.ID(pid))
 		}
 	}
 
@@ -923,6 +944,19 @@ func (l *LiquidNet) Start() error {
 	return err
 }
 
+func (l *LiquidNet) resetChainPubSubBlackPeerWithPid(pidStr string) {
+	l.psMap.Range(func(key, value interface{}) bool {
+		chainId := key.(string)
+		ps := value.(broadcast.PubSub)
+		if l.peerIdChainIdsRecorder.IsPeerBelongToChain(pidStr, chainId) {
+			ps.RemoveBlackPeer(peer.ID(pidStr))
+		} else {
+			ps.SetBlackPeer(peer.ID(pidStr))
+		}
+		return true
+	})
+}
+
 func (l *LiquidNet) queryAndStoreDerivedInfoInCertValidator(peerIdStr string) {
 	if l.hostCfg.Insecurity {
 		return
@@ -932,9 +966,11 @@ func (l *LiquidNet) queryAndStoreDerivedInfoInCertValidator(peerIdStr string) {
 		if derivedInfo != nil {
 			l.peerIdTlsCertStore.SetPeerTlsCert(derivedInfo.PeerId, derivedInfo.TlsCertBytes)
 			for i := range derivedInfo.ChainIds {
-				l.peerIdChainIdsRecorder.AddPeerChainId(derivedInfo.PeerId, derivedInfo.ChainIds[i])
+				chainId := derivedInfo.ChainIds[i]
+				l.peerIdChainIdsRecorder.AddPeerChainId(derivedInfo.PeerId, chainId)
 			}
 			l.certIdPeerIdMapper.Add(derivedInfo.CertId, derivedInfo.PeerId)
+			l.resetChainPubSubBlackPeerWithPid(derivedInfo.PeerId)
 		} else {
 			log.Warnf("[LiquidNet] no derived info found from quic tls cert validator! (pid: %s)", peerIdStr)
 		}
@@ -948,6 +984,7 @@ func (l *LiquidNet) queryAndStoreDerivedInfoInCertValidator(peerIdStr string) {
 				l.peerIdChainIdsRecorder.AddPeerChainId(derivedInfo.PeerId, derivedInfo.ChainIds[i])
 			}
 			l.certIdPeerIdMapper.Add(derivedInfo.CertId, derivedInfo.PeerId)
+			l.resetChainPubSubBlackPeerWithPid(derivedInfo.PeerId)
 		} else {
 			log.Warnf("[LiquidNet] no derived info found from gmtls cert validator! (pid: %s)", peerIdStr)
 		}
@@ -960,6 +997,7 @@ func (l *LiquidNet) queryAndStoreDerivedInfoInCertValidator(peerIdStr string) {
 			l.peerIdChainIdsRecorder.AddPeerChainId(derivedInfo.PeerId, derivedInfo.ChainIds[i])
 		}
 		l.certIdPeerIdMapper.Add(derivedInfo.CertId, derivedInfo.PeerId)
+		l.resetChainPubSubBlackPeerWithPid(derivedInfo.PeerId)
 	} else {
 		log.Warnf("[LiquidNet] no derived info found from tls cert validator! (pid: %s)", peerIdStr)
 	}

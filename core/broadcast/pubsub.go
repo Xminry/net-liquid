@@ -38,4 +38,8 @@ type PubSub interface {
 	ID() peer.ID
 	// Stop the pub-sub service.
 	Stop() error
+	// SetBlackPeer add a peer id into the blacklist of PubSub.
+	SetBlackPeer(pid peer.ID)
+	// RemoveBlackPeer remove a peer id from the blacklist of PubSub.
+	RemoveBlackPeer(pid peer.ID)
 }
