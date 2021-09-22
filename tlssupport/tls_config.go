@@ -149,7 +149,7 @@ func verifyCertChain(chain []*x509.Certificate) (bool, error) {
 }
 
 // PrivateKeyToCertificate create a certificate simply with a private key.
-func PrivateKeyToCertificate(privateKye crypto.PrivateKey) (*tls.Certificate, error) {
+func PrivateKeyToCertificate(privateKey crypto.PrivateKey) (*tls.Certificate, error) {
 	certKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return nil, err
@@ -159,11 +159,11 @@ func PrivateKeyToCertificate(privateKye crypto.PrivateKey) (*tls.Certificate, er
 	if err != nil {
 		return nil, err
 	}
-	keyBytes, err := privateKye.PublicKey().Bytes()
+	keyBytes, err := privateKey.PublicKey().Bytes()
 	if err != nil {
 		return nil, err
 	}
-	signature, err := privateKye.Sign(append([]byte(certificatePrefix), certKeyPub...))
+	signature, err := privateKey.Sign(append([]byte(certificatePrefix), certKeyPub...))
 	if err != nil {
 		return nil, err
 	}
