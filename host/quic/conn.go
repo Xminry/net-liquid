@@ -15,6 +15,7 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 	manet "github.com/multiformats/go-multiaddr/net"
 	"github.com/xiaotianfork/quic-go"
+	"net"
 	"sync"
 	"time"
 )
@@ -80,14 +81,24 @@ func resolveLocalAndRemoteAddrFromQuicSess(sess quic.Session) (lAddr, rAddr ma.M
 	return lAddr, rAddr, nil
 }
 
-// LocalAddr is the local net address of the connection.
+// LocalAddr is the local net multi-address of the connection.
 func (q *qConn) LocalAddr() ma.Multiaddr {
 	return q.laddr
+}
+
+// LocalNetAddr is the local net address of the connection.
+func (q *qConn) LocalNetAddr() net.Addr {
+	return q.sess.LocalAddr()
 }
 
 // RemoteAddr is the remote net address of the connection.
 func (q *qConn) RemoteAddr() ma.Multiaddr {
 	return q.raddr
+}
+
+// RemoteNetAddr is the remote net address of the connection.
+func (q *qConn) RemoteNetAddr() net.Addr {
+	return q.sess.RemoteAddr()
 }
 
 // Network is the network instance who create this connection.

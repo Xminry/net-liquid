@@ -14,7 +14,6 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
-	manet "github.com/multiformats/go-multiaddr/net"
 )
 
 var _ blacklist.BlackList = (*simpleBlacklist)(nil)
@@ -93,12 +92,7 @@ func (s *simpleBlacklist) IsBlack(conn network.Conn) bool {
 	if s.peerIds.Exist(remotePid) {
 		return true
 	}
-	remoteMA := conn.RemoteAddr()
-	netAddr, err := manet.ToNetAddr(remoteMA)
-	if err != nil {
-		return false
-	}
-	netAddrStr := netAddr.String()
+	netAddrStr := conn.RemoteNetAddr().String()
 	if s.ipAndPort.Exist(netAddrStr) {
 		return true
 	}

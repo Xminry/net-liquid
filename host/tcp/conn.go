@@ -386,9 +386,14 @@ func (c *conn) Close() error {
 	return err
 }
 
-// LocalAddr is the local net address of the connection.
+// LocalAddr is the local net multi-address of the connection.
 func (c *conn) LocalAddr() ma.Multiaddr {
 	return c.laddr
+}
+
+// LocalNetAddr is the local net address of the connection.
+func (c *conn) LocalNetAddr() net.Addr {
+	return c.c.LocalAddr()
 }
 
 // LocalPeerID is the local peer id of the connection.
@@ -399,6 +404,11 @@ func (c *conn) LocalPeerID() peer.ID {
 // RemoteAddr is the remote net address of the connection.
 func (c *conn) RemoteAddr() ma.Multiaddr {
 	return c.raddr
+}
+
+// RemoteNetAddr is the remote net address of the connection.
+func (c *conn) RemoteNetAddr() net.Addr {
+	return c.c.RemoteAddr()
 }
 
 // RemotePeerID is the remote peer id of the connection.
