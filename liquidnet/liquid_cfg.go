@@ -22,21 +22,20 @@ func SetListenAddrStr(hc *host.HostConfig, listenAddrStr string) error {
 }
 
 type cryptoConfig struct {
-	KeyBytes                 []byte
-	CertBytes                []byte
-	SignKeyBytes             []byte
-	SignCertBytes            []byte
-	ChainTrustRootCertsBytes map[string][][]byte
+	PubKeyMode                     bool
+	KeyBytes                       []byte
+	CertBytes                      []byte
+	CustomChainTrustRootCertsBytes map[string][][]byte
 }
 
-func (cc *cryptoConfig) AddTrustRootCert(chainId string, rootCert []byte) {
-	if cc.ChainTrustRootCertsBytes == nil {
-		cc.ChainTrustRootCertsBytes = make(map[string][][]byte)
+func (cc *cryptoConfig) SetCustomTrustRootCert(chainId string, rootCerts [][]byte) {
+	if cc.CustomChainTrustRootCertsBytes == nil {
+		cc.CustomChainTrustRootCertsBytes = make(map[string][][]byte)
 	}
-	if _, ok := cc.ChainTrustRootCertsBytes[chainId]; !ok {
-		cc.ChainTrustRootCertsBytes[chainId] = make([][]byte, 0, 10)
+	if _, ok := cc.CustomChainTrustRootCertsBytes[chainId]; !ok {
+		cc.CustomChainTrustRootCertsBytes[chainId] = make([][]byte, 0, 10)
 	}
-	cc.ChainTrustRootCertsBytes[chainId] = append(cc.ChainTrustRootCertsBytes[chainId], rootCert)
+	cc.CustomChainTrustRootCertsBytes[chainId] = rootCerts
 }
 
 type pubSubConfig struct {

@@ -8,7 +8,6 @@ package host
 
 import (
 	"context"
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"sync"
@@ -26,9 +25,9 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/util"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/simple"
 	"chainmaker.org/chainmaker/common/v2/crypto"
+	cmTls "chainmaker.org/chainmaker/common/v2/crypto/tls"
 	api "chainmaker.org/chainmaker/protocol/v2"
 	ma "github.com/multiformats/go-multiaddr"
-	"github.com/tjfoc/gmsm/gmtls"
 )
 
 var (
@@ -53,29 +52,13 @@ var (
 
 // HostConfig contains necessary parameters for BasicHost.
 type HostConfig struct {
-	// NetType is the network type of liquid net.
-	NetType NetworkType
 	// PrivateKey of crypto.
 	// Local peer.ID will be generated with it.
 	PrivateKey crypto.PrivateKey
 	// TlsCfg is the configuration for both tls server and client.
-	TlsCfg *tls.Config
-	// LoadPidFunc is a function which type is types.LoadPeerIdFromTlsCertFunc, used to load peer.ID from x509 certs.
-	LoadPidFunc types.LoadPeerIdFromTlsCertFunc
-	// QTlsCfg is the configuration for both QUIC tls server and client.
-	QTlsCfg *tls.Config
-	// LoadPidFunc is a function which type is types.LoadPeerIdFromQTlsCertFunc,
-	// used to load peer.ID from QUIC x509 certs.
-	LoadPidFuncQ types.LoadPeerIdFromQTlsCertFunc
-	// GMTlsServerCfg is the configuration for gm tls server.
-	GMTlsServerCfg *gmtls.Config
-	// GMTlsClientCfg is the configuration for gm tls client.
-	GMTlsClientCfg *gmtls.Config
-	// LoadPidFuncGm is a function which type is types.LoadPeerIdFromGMTlsCertFunc,
-	// used to load peer.ID from gmx509 certs.
-	LoadPidFuncGm types.LoadPeerIdFromGMTlsCertFunc
-	// UseGMTls decides whether to use gm tls security.
-	UseGMTls bool
+	TlsCfg *cmTls.Config
+	// LoadPidFunc is a function which type is types.LoadPeerIdFromCMTlsCertFunc, used to load peer.ID from x509 certs.
+	LoadPidFunc types.LoadPeerIdFromCMTlsCertFunc
 	// SendStreamPoolInitSize is the size of sending streams will be created when a sending stream pool initialing.
 	SendStreamPoolInitSize int32
 	// SendStreamPoolCap is the max size of the sending stream pool of each conn.
@@ -155,23 +138,9 @@ func (c *HostConfig) NewHost(networkType NetworkType, ctx context.Context, logge
 	options := make([]Option, 0)
 	options = append(options, WithCtx(ctx), WithLocalPID(lPid), WithEnableTls(!c.Insecurity))
 	if !c.Insecurity {
-		if networkType == QuicNetwork {
-			options = append(options,
-				WithGMTls(false),
-				WithQTlsCfg(c.QTlsCfg.Clone()),
-				WithLoadPidFuncQ(c.LoadPidFuncQ))
-		} else if c.UseGMTls {
-			options = append(options,
-				WithGMTls(true),
-				WithGMTlcServerCfg(c.GMTlsServerCfg),
-				WithGMTlcClientCfg(c.GMTlsClientCfg),
-				WithLoadPidFuncGm(c.LoadPidFuncGm))
-		} else {
-			options = append(options,
-				WithGMTls(false),
-				WithTlcCfg(c.TlsCfg.Clone()),
-				WithLoadPidFunc(c.LoadPidFunc))
-		}
+		options = append(options,
+			WithTlcCfg(c.TlsCfg.Clone()),
+			WithLoadPidFunc(c.LoadPidFunc))
 	}
 	nw, err := newNetwork(networkType, h.logger, options...)
 	if err != nil {

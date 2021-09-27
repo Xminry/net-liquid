@@ -8,7 +8,6 @@ package tcp
 
 import (
 	"context"
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"net"
@@ -20,11 +19,11 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/reuse"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/util"
+	cmTls "chainmaker.org/chainmaker/common/v2/crypto/tls"
 	api "chainmaker.org/chainmaker/protocol/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	mafmt "github.com/multiformats/go-multiaddr-fmt"
 	manet "github.com/multiformats/go-multiaddr/net"
-	"github.com/tjfoc/gmsm/gmtls"
 )
 
 const (
@@ -35,16 +34,8 @@ const (
 var (
 	// ErrNilTlsCfg will be returned if tls config is nil when network starting.
 	ErrNilTlsCfg = errors.New("nil tls config")
-	// ErrNilGMTlsServerCfg will be returned if gm tls server config is nil when gm tls enabled.
-	ErrNilGMTlsServerCfg = errors.New("nil gm tls server config")
-	// ErrNilGMTlsClientCfg will be returned if gm tls client config is nil when gm tls enabled.
-	ErrNilGMTlsClientCfg = errors.New("nil gm tls client config")
 	// ErrEmptyTlsCerts will be returned if no tls cert given when network starting with tls enabled.
 	ErrEmptyTlsCerts = errors.New("empty tls certs")
-	// ErrGMTlsCertsForServerLack will be returned if the count of certs for gm tls server configuration less than two.
-	ErrGMTlsCertsForServerLack = errors.New("at last two certs required for gm tls server config")
-	// ErrEmptyGMTlsClientCerts will be returned if no certs for gm tls client configuration.
-	ErrEmptyGMTlsClientCerts = errors.New("empty gm tls certs for client")
 	// ErrNilAddr will be returned if the listening address is empty.
 	ErrNilAddr = errors.New("nil addr")
 	// ErrEmptyListenAddress will be returned if no listening address given.
@@ -89,14 +80,10 @@ type tcpNetwork struct {
 	once sync.Once
 	ctx  context.Context
 
-	tlsCfg         *tls.Config
-	loadPidFunc    types.LoadPeerIdFromTlsCertFunc
-	enableTls      bool
-	gmTlsServerCfg *gmtls.Config
-	gmTlsClientCfg *gmtls.Config
-	loadPidFuncGm  types.LoadPeerIdFromGMTlsCertFunc
-	useGMTls       bool
-	connHandler    network.ConnHandler
+	tlsCfg      *cmTls.Config
+	loadPidFunc types.LoadPeerIdFromCMTlsCertFunc
+	enableTls   bool
+	connHandler network.ConnHandler
 
 	lPID         peer.ID
 	lAddrList    []ma.Multiaddr
@@ -117,17 +104,17 @@ func (t *tcpNetwork) apply(opt ...Option) error {
 	return nil
 }
 
-// WithTlsCfg set a tls.Config option value.
-// If enable tls is false, tls.Config will not usable.
-func WithTlsCfg(tlsCfg *tls.Config) Option {
+// WithTlsCfg set a cmTls.Config option value.
+// If enable tls is false, cmTls.Config will not usable.
+func WithTlsCfg(tlsCfg *cmTls.Config) Option {
 	return func(n *tcpNetwork) error {
 		n.tlsCfg = tlsCfg
 		return nil
 	}
 }
 
-// WithLoadPidFunc set a types.LoadPeerIdFromTlsCertFunc for loading peer.ID from x509 certs when tls handshaking.
-func WithLoadPidFunc(f types.LoadPeerIdFromTlsCertFunc) Option {
+// WithLoadPidFunc set a types.LoadPeerIdFromCMTlsCertFunc for loading peer.ID from cmx509 certs when tls handshaking.
+func WithLoadPidFunc(f types.LoadPeerIdFromCMTlsCertFunc) Option {
 	return func(n *tcpNetwork) error {
 		n.loadPidFunc = f
 		return nil
@@ -151,43 +138,6 @@ func WithEnableTls(enable bool) Option {
 	}
 }
 
-// WithGMTlsServerCfg set a gmtls.Config option value for gmtls server.
-// If enable tls or use gmtls is false, gmtls.Config will not usable.
-func WithGMTlsServerCfg(gmTlsCfg *gmtls.Config) Option {
-	return func(n *tcpNetwork) error {
-		n.gmTlsServerCfg = gmTlsCfg
-		return nil
-	}
-}
-
-// WithGMTlsClientCfg set a gmtls.Config option value for gmtls client.
-// If enable tls or use gmtls is false, gmtls.Config will not usable.
-func WithGMTlsClientCfg(gmTlsCfg *gmtls.Config) Option {
-	return func(n *tcpNetwork) error {
-		n.gmTlsClientCfg = gmTlsCfg
-		return nil
-	}
-}
-
-// WithLoadPidFuncGm set a types.LoadPeerIdFromGMTlsCertFunc for loading peer.ID from gmx509 certs when gmtls handshaking.
-func WithLoadPidFuncGm(f types.LoadPeerIdFromGMTlsCertFunc) Option {
-	return func(n *tcpNetwork) error {
-		n.loadPidFuncGm = f
-		return nil
-	}
-}
-
-// WithGMTls set a bool value deciding whether gm tls used.
-// If enable is true, enableTLS option also will be set true.
-func WithGMTls(enable bool) Option {
-	return func(n *tcpNetwork) error {
-		if n.enableTls {
-			n.useGMTls = enable
-		}
-		return nil
-	}
-}
-
 // NewNetwork create a new network instance with TCP transport.
 func NewNetwork(ctx context.Context, logger api.Logger, opt ...Option) (*tcpNetwork, error) {
 	if ctx == nil {
@@ -199,15 +149,11 @@ func NewNetwork(ctx context.Context, logger api.Logger, opt ...Option) (*tcpNetw
 		once: sync.Once{},
 		ctx:  ctx,
 
-		tlsCfg:         nil,
-		loadPidFunc:    nil,
-		enableTls:      true,
-		gmTlsServerCfg: nil,
-		gmTlsClientCfg: nil,
-		loadPidFuncGm:  nil,
-		useGMTls:       false,
-		lAddrList:      make([]ma.Multiaddr, 0, 10),
-		tcpListeners:   make([]net.Listener, 0, 10),
+		tlsCfg:       nil,
+		loadPidFunc:  nil,
+		enableTls:    true,
+		lAddrList:    make([]ma.Multiaddr, 0, 10),
+		tcpListeners: make([]net.Listener, 0, 10),
 
 		closeChan: make(chan struct{}),
 		lPID:      "",
@@ -224,40 +170,6 @@ func NewNetwork(ctx context.Context, logger api.Logger, opt ...Option) (*tcpNetw
 
 	if n.lPID == "" {
 		return nil, ErrLocalPidNotSet
-		/*if !n.enableTls {
-			return nil, ErrLocalPidNotSet
-		}
-		if n.useGMTls {
-			if n.loadPidFuncGm == nil {
-				return nil, ErrNilLoadPidFunc
-			}
-			//resolve local PID from GMTlsCfg.Certificates
-			cert, err := gmx509.ParseCertificate(n.gmTlsServerCfg.Certificates[1].Certificate[0])
-			if err != nil {
-				return nil, err
-			}
-			n.lPID, err = n.loadPidFuncGm([]*gmx509.Certificate{cert})
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			if n.loadPidFunc == nil {
-				return nil, ErrNilLoadPidFunc
-			}
-			//resolve local PID from TlsCfg.Certificates
-			cert, err := x509.ParseCertificate(n.tlsCfg.Certificates[0].Certificate[0])
-			if err != nil {
-				return nil, err
-			}
-			n.lPID, err = n.loadPidFunc([]*x509.Certificate{cert})
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		if n.lPID == "" {
-			return nil, ErrEmptyLocalPeerId
-		}*/
 	}
 
 	return n, nil
@@ -265,25 +177,6 @@ func NewNetwork(ctx context.Context, logger api.Logger, opt ...Option) (*tcpNetw
 
 func (t *tcpNetwork) checkTlsCfg() error {
 	if !t.enableTls {
-		return nil
-	}
-	if t.useGMTls {
-		if t.gmTlsServerCfg == nil {
-			return ErrNilGMTlsServerCfg
-		}
-		if t.gmTlsClientCfg == nil {
-			return ErrNilGMTlsClientCfg
-		}
-		if t.gmTlsServerCfg.Certificates == nil || len(t.gmTlsServerCfg.Certificates) < 2 {
-			return ErrGMTlsCertsForServerLack
-		}
-		if t.gmTlsClientCfg.Certificates == nil || len(t.gmTlsClientCfg.Certificates) < 1 {
-			return ErrEmptyGMTlsClientCerts
-		}
-		t.gmTlsServerCfg.NextProtos = []string{"liquid-network-tcp-" + TCPNetworkVersion}
-		t.gmTlsServerCfg.Renegotiation = gmtls.RenegotiateFreelyAsClient
-		t.gmTlsClientCfg.NextProtos = []string{"liquid-network-tcp-" + TCPNetworkVersion}
-		t.gmTlsClientCfg.Renegotiation = gmtls.RenegotiateFreelyAsClient
 		return nil
 	}
 	if t.tlsCfg == nil {

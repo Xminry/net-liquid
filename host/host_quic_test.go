@@ -8,9 +8,10 @@ package host
 
 import (
 	"chainmaker.org/chainmaker/common/v2/crypto/asym"
+	cmTls "chainmaker.org/chainmaker/common/v2/crypto/tls"
+	cmx509 "chainmaker.org/chainmaker/common/v2/crypto/x509"
 	"context"
 	"crypto/tls"
-	"crypto/x509"
 	qx509 "github.com/xiaotianfork/q-tls-common/x509"
 	"strconv"
 	"testing"
@@ -44,18 +45,18 @@ func CreateHostQUIC(idx int, seeds map[peer.ID]ma.Multiaddr) (host.Host, error) 
 	if err != nil {
 		return nil, err
 	}
-	tlsCert, err := tls.X509KeyPair(certPEMs[idx], keyPEMs[idx])
+	tlsCert, err := cmTls.X509KeyPair(certPEMs[idx], keyPEMs[idx])
 	if err != nil {
 		return nil, err
 	}
-	var cipherSuite []uint16
-	cipherSuite = []uint16{0x1301, 0x1302, 0x1303}
+	//var cipherSuite []uint16
+	//cipherSuite = []uint16{0x1301, 0x1302, 0x1303}
 	hostCfg := &HostConfig{
-		QTlsCfg: &tls.Config{
-			Certificates:       []tls.Certificate{tlsCert},
+		TlsCfg: &cmTls.Config{
+			Certificates:       []cmTls.Certificate{tlsCert},
 			InsecureSkipVerify: true,
-			ClientAuth:         tls.RequireAnyClientCert,
-			VerifyPeerCertificate: func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
+			ClientAuth:         cmTls.RequireAnyClientCert,
+			VerifyPeerCertificate: func(rawCerts [][]byte, _ [][]*cmx509.Certificate) error {
 				tlsCertBytes := rawCerts[0]
 				cert, err := qx509.ParseCertificate(tlsCertBytes)
 				if err != nil {
@@ -67,10 +68,10 @@ func CreateHostQUIC(idx int, seeds map[peer.ID]ma.Multiaddr) (host.Host, error) 
 				}
 				return nil
 			},
-			MaxVersion:   tls.VersionTLS13,
-			CipherSuites: cipherSuite,
+			MaxVersion: tls.VersionTLS13,
+			//CipherSuites: cipherSuite,
 		},
-		LoadPidFuncQ: func(certificates []*qx509.Certificate) (peer.ID, error) {
+		LoadPidFunc: func(certificates []*cmx509.Certificate) (peer.ID, error) {
 			pid, err := helper.GetLibp2pPeerIdFromCertDer(certificates[0].Raw)
 			if err != nil {
 				return "", err

@@ -8,7 +8,6 @@ package host
 
 import (
 	"context"
-	"crypto/tls"
 	"errors"
 
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
@@ -16,9 +15,9 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/host/quic"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/host/tcp"
+	cmTls "chainmaker.org/chainmaker/common/v2/crypto/tls"
 	api "chainmaker.org/chainmaker/protocol/v2"
 	ma "github.com/multiformats/go-multiaddr"
-	"github.com/tjfoc/gmsm/gmtls"
 )
 
 // NetworkType is the type of transport layer.
@@ -45,17 +44,9 @@ type networkConfig struct {
 	ctx  context.Context
 	lPid peer.ID
 
-	tlsCfg      *tls.Config
-	loadPidFunc types.LoadPeerIdFromTlsCertFunc
+	tlsCfg      *cmTls.Config
+	loadPidFunc types.LoadPeerIdFromCMTlsCertFunc
 	enableTls   bool
-
-	qTlsCfg      *tls.Config
-	loadPidFuncQ types.LoadPeerIdFromQTlsCertFunc
-
-	gmTlsServerCfg *gmtls.Config
-	gmTlsClientCfg *gmtls.Config
-	loadPidFuncGm  types.LoadPeerIdFromGMTlsCertFunc
-	useGMTls       bool
 }
 
 func (c *networkConfig) apply(opt ...Option) error {
@@ -84,7 +75,7 @@ func WithLocalPID(pid peer.ID) Option {
 }
 
 // WithTlcCfg set the configuration for TLS.
-func WithTlcCfg(cfg *tls.Config) Option {
+func WithTlcCfg(cfg *cmTls.Config) Option {
 	return func(c *networkConfig) error {
 		c.tlsCfg = cfg
 		return nil
@@ -92,25 +83,9 @@ func WithTlcCfg(cfg *tls.Config) Option {
 }
 
 // WithLoadPidFunc set a types.LoadPeerIdFromTlsCertFunc for loading peer.ID from x509 certs.
-func WithLoadPidFunc(loadPidFunc types.LoadPeerIdFromTlsCertFunc) Option {
+func WithLoadPidFunc(loadPidFunc types.LoadPeerIdFromCMTlsCertFunc) Option {
 	return func(c *networkConfig) error {
 		c.loadPidFunc = loadPidFunc
-		return nil
-	}
-}
-
-// WithQTlsCfg set the configuration for quic TLS.
-func WithQTlsCfg(cfg *tls.Config) Option {
-	return func(c *networkConfig) error {
-		c.qTlsCfg = cfg
-		return nil
-	}
-}
-
-// WithLoadPidFuncQ set a types.LoadPeerIdFromQTlsCertFunc for loading peer.ID from qx509 certs.
-func WithLoadPidFuncQ(loadPidFunc types.LoadPeerIdFromQTlsCertFunc) Option {
-	return func(c *networkConfig) error {
-		c.loadPidFuncQ = loadPidFunc
 		return nil
 	}
 }
@@ -123,50 +98,18 @@ func WithEnableTls(enable bool) Option {
 	}
 }
 
-// WithGMTlcServerCfg set the configuration for GM TLS server.
-func WithGMTlcServerCfg(cfg *gmtls.Config) Option {
-	return func(c *networkConfig) error {
-		c.gmTlsServerCfg = cfg
-		return nil
-	}
-}
-
-// WithGMTlcClientCfg set the configuration for GM TLS client.
-func WithGMTlcClientCfg(cfg *gmtls.Config) Option {
-	return func(c *networkConfig) error {
-		c.gmTlsClientCfg = cfg
-		return nil
-	}
-}
-
-// WithLoadPidFuncGm set a types.LoadPeerIdFromGMTlsCertFunc for loading peer.ID from gmx509 certs.
-func WithLoadPidFuncGm(loadPidFuncGm types.LoadPeerIdFromGMTlsCertFunc) Option {
-	return func(c *networkConfig) error {
-		c.loadPidFuncGm = loadPidFuncGm
-		return nil
-	}
-}
-
-// WithGMTls make gm tls usable.
-func WithGMTls(enable bool) Option {
-	return func(c *networkConfig) error {
-		c.useGMTls = enable
-		return nil
-	}
-}
-
 // newQuicNetwork create a network with quic transport.
 func newQuicNetwork(cfg *networkConfig, logger api.Logger) (network.Network, error) {
-	if cfg.qTlsCfg == nil {
-		return nil, errors.New("qtls.config is required")
+	if cfg.tlsCfg == nil {
+		return nil, errors.New("tls config is required")
 	}
 	ctx := cfg.ctx
 	if ctx == nil {
 		ctx = context.Background()
 	}
 	return quic.NewNetwork(ctx, logger,
-		quic.WithTlsCfg(cfg.qTlsCfg),
-		quic.WithLoadPidFunc(cfg.loadPidFuncQ),
+		quic.WithTlsCfg(cfg.tlsCfg),
+		quic.WithLoadPidFunc(cfg.loadPidFunc),
 		quic.WithLocalPeerId(cfg.lPid),
 	)
 }
@@ -181,10 +124,6 @@ func newTcpNetwork(cfg *networkConfig, logger api.Logger) (network.Network, erro
 		tcp.WithTlsCfg(cfg.tlsCfg),
 		tcp.WithLoadPidFunc(cfg.loadPidFunc),
 		tcp.WithEnableTls(cfg.enableTls),
-		tcp.WithGMTls(cfg.useGMTls),
-		tcp.WithLoadPidFuncGm(cfg.loadPidFuncGm),
-		tcp.WithGMTlsServerCfg(cfg.gmTlsServerCfg),
-		tcp.WithGMTlsClientCfg(cfg.gmTlsClientCfg),
 		tcp.WithLocalPeerId(cfg.lPid),
 	)
 }

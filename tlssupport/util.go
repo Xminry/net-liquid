@@ -12,43 +12,15 @@ import (
 	"errors"
 
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
+	cmx509 "chainmaker.org/chainmaker/common/v2/crypto/x509"
 	"chainmaker.org/chainmaker/common/v2/helper"
 	gmx509 "github.com/tjfoc/gmsm/x509"
-	qx509 "github.com/xiaotianfork/q-tls-common/x509"
 )
 
 // PeerIdFunction is a function can load peer.ID from certificates got when tls handshaking.
-func PeerIdFunction() func(certificates []*x509.Certificate) (peer.ID, error) {
-	return func(certificates []*x509.Certificate) (peer.ID, error) {
+func PeerIdFunction() func(certificates []*cmx509.Certificate) (peer.ID, error) {
+	return func(certificates []*cmx509.Certificate) (peer.ID, error) {
 		pid, err := helper.GetLibp2pPeerIdFromCertDer(certificates[0].Raw)
-		if err != nil {
-			return "", err
-		}
-		return peer.ID(pid), err
-	}
-}
-
-//PeerIdFunctionQuic is a function can load peer.ID from certificates got when quic tls handshaking.
-func PeerIdFunctionQuic() func(certificates []*qx509.Certificate) (peer.ID, error) {
-	return func(certificates []*qx509.Certificate) (peer.ID, error) {
-		pid, err := helper.GetLibp2pPeerIdFromCertDer(certificates[0].Raw)
-		if err != nil {
-			return "", err
-		}
-		return peer.ID(pid), err
-	}
-}
-
-// PeerIdFunctionGM is a function can load peer.ID from gm certificates got when gm tls handshaking.
-func PeerIdFunctionGM() func(certificates []*gmx509.Certificate) (peer.ID, error) {
-	return func(certificates []*gmx509.Certificate) (peer.ID, error) {
-		var raw []byte
-		if len(certificates) > 1 {
-			raw = certificates[1].Raw
-		} else {
-			raw = certificates[0].Raw
-		}
-		pid, err := helper.GetLibp2pPeerIdFromCertDer(raw)
 		if err != nil {
 			return "", err
 		}

@@ -9,6 +9,7 @@ package quic
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"net"
@@ -20,6 +21,7 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/util"
+	cmTls "chainmaker.org/chainmaker/common/v2/crypto/tls"
 	api "chainmaker.org/chainmaker/protocol/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	mafmt "github.com/multiformats/go-multiaddr-fmt"
@@ -76,8 +78,9 @@ type qNetwork struct {
 	ctx  context.Context
 
 	qCfg        *quic.Config
+	cmTlsCfg    *cmTls.Config
+	loadPidFunc types.LoadPeerIdFromCMTlsCertFunc
 	tlsCfg      *tls.Config
-	loadPidFunc types.LoadPeerIdFromQTlsCertFunc
 	connHandler network.ConnHandler
 
 	lPID       peer.ID
@@ -101,15 +104,38 @@ func (q *qNetwork) apply(opt ...Option) error {
 }
 
 // WithTlsCfg set a tls.Config option value.
-func WithTlsCfg(tlsCfg *tls.Config) Option {
+func WithTlsCfg(tlsCfg *cmTls.Config) Option {
 	return func(n *qNetwork) error {
-		n.tlsCfg = tlsCfg
+		n.cmTlsCfg = tlsCfg
+		// wrap tls config
+		//var cipherSuite []uint16
+		//useSm := false // TODO: 加入启用国密判断
+		//if useSm {
+		//	cipherSuite = []uint16{0x00c6}
+		//} else {
+		//	cipherSuite = []uint16{0x1301, 0x1302, 0x1303}
+		//}
+		certs, e2 := ParseCMTLSCertsToGoTLSCerts(tlsCfg.Certificates)
+		if e2 != nil {
+			return e2
+		}
+		verifyFunc := func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
+			return n.cmTlsCfg.VerifyPeerCertificate(rawCerts, nil)
+		}
+		n.tlsCfg = &tls.Config{
+			Certificates:          certs,
+			InsecureSkipVerify:    true,
+			ClientAuth:            tls.RequireAnyClientCert,
+			VerifyPeerCertificate: verifyFunc,
+			MaxVersion:            tls.VersionTLS13,
+			//CipherSuites:          cipherSuite,
+		}
 		return nil
 	}
 }
 
 // WithLoadPidFunc set a types.LoadPeerIdFromTlsCertFunc for loading peer.ID from x509 certs when tls handshaking.
-func WithLoadPidFunc(f types.LoadPeerIdFromQTlsCertFunc) Option {
+func WithLoadPidFunc(f types.LoadPeerIdFromCMTlsCertFunc) Option {
 	return func(n *qNetwork) error {
 		n.loadPidFunc = f
 		return nil
@@ -307,6 +333,7 @@ func (q *qNetwork) Listen(ctx context.Context, addrs ...ma.Multiaddr) error {
 					err = e
 					return
 				}
+
 				// create quic listener
 				listener, e := quic.Listen(pc, q.tlsCfg.Clone(), q.qCfg.Clone())
 				if e != nil {
@@ -322,7 +349,7 @@ func (q *qNetwork) Listen(ctx context.Context, addrs ...ma.Multiaddr) error {
 				if ctx == nil {
 					ctx = q.ctx
 				}
-				// run a accept loop task with listener
+				// run an accepting loop task with listener
 				go q.listenerAcceptLoop(listener)
 				// save the local address and packet connection and listener
 				q.laddrs = append(q.laddrs, usableAddr)

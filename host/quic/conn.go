@@ -39,7 +39,7 @@ type qConn struct {
 }
 
 // NewQConn create a new qConn.
-func NewQConn(nw *qNetwork, sess quic.Session, direction network.Direction, loadPidFunc types.LoadPeerIdFromQTlsCertFunc) (*qConn, error) {
+func NewQConn(nw *qNetwork, sess quic.Session, direction network.Direction, loadPidFunc types.LoadPeerIdFromCMTlsCertFunc) (*qConn, error) {
 	lAddr, rAddr, err := resolveLocalAndRemoteAddrFromQuicSess(sess)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,11 @@ func NewQConn(nw *qNetwork, sess quic.Session, direction network.Direction, load
 	lPID := nw.lPID
 	// resolve remote PID from sess.ConnectionState().TLS.ConnectionState.PeerCertificates
 	state := fromClientSessionState(sess.ConnectionState())
-	rPID, err := loadPidFunc(state.TLS.PeerCertificates)
+	cmCerts, err := ParseQX509CertsToCMX509Certs(state.TLS.PeerCertificates)
+	if err != nil {
+		return nil, err
+	}
+	rPID, err := loadPidFunc(cmCerts)
 	if err != nil {
 		return nil, err
 	}

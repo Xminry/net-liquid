@@ -8,7 +8,6 @@ package tcp
 
 import (
 	"context"
-	"crypto/tls"
 	"errors"
 	"io/ioutil"
 	"net"
@@ -17,10 +16,10 @@ import (
 
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
+	cmTls "chainmaker.org/chainmaker/common/v2/crypto/tls"
 	"github.com/libp2p/go-yamux/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	manet "github.com/multiformats/go-multiaddr/net"
-	"github.com/tjfoc/gmsm/gmtls"
 )
 
 var (
@@ -78,48 +77,25 @@ func (c *conn) handshakeInbound(conn net.Conn) (net.Conn, error) {
 	var err error
 	finalConn := conn
 	if c.nw.enableTls {
-		if c.nw.useGMTls {
-			// gm tls handshake
-			// inbound conn as server
-			tlsCfg := c.nw.gmTlsServerCfg.Clone()
-			tlsConn := gmtls.Server(finalConn, tlsCfg)
-			err = tlsConn.Handshake()
-			if err != nil {
-				_ = tlsConn.Close()
-				return nil, err
-			}
-			connState := tlsConn.ConnectionState()
-			// notice: seemingly gm tls not support protocol negotiate
-			//if connState.NegotiatedProtocol != tlsCfg.NextProtos[0] {
-			//	return nil, ErrNextProtoMismatch
-			//}
-			c.rPID, err = c.nw.loadPidFuncGm(connState.PeerCertificates)
-			if err != nil {
-				_ = tlsConn.Close()
-				return nil, err
-			}
-			finalConn = tlsConn
-		} else {
-			// tls handshake
-			// inbound conn as server
-			tlsCfg := c.nw.tlsCfg.Clone()
-			tlsConn := tls.Server(finalConn, tlsCfg)
-			err = tlsConn.Handshake()
-			if err != nil {
-				_ = tlsConn.Close()
-				return nil, err
-			}
-			connState := tlsConn.ConnectionState()
-			if connState.NegotiatedProtocol != tlsCfg.NextProtos[0] {
-				return nil, ErrNextProtoMismatch
-			}
-			c.rPID, err = c.nw.loadPidFunc(connState.PeerCertificates)
-			if err != nil {
-				_ = tlsConn.Close()
-				return nil, err
-			}
-			finalConn = tlsConn
+		// tls handshake
+		// inbound conn as server
+		tlsCfg := c.nw.tlsCfg.Clone()
+		tlsConn := cmTls.Server(finalConn, tlsCfg)
+		err = tlsConn.Handshake()
+		if err != nil {
+			_ = tlsConn.Close()
+			return nil, err
 		}
+		connState := tlsConn.ConnectionState()
+		if connState.NegotiatedProtocol != tlsCfg.NextProtos[0] {
+			return nil, ErrNextProtoMismatch
+		}
+		c.rPID, err = c.nw.loadPidFunc(connState.PeerCertificates)
+		if err != nil {
+			_ = tlsConn.Close()
+			return nil, err
+		}
+		finalConn = tlsConn
 	} else {
 		// exchange PID
 		// receive pid
@@ -190,48 +166,25 @@ func (c *conn) handshakeOutbound(conn net.Conn) (net.Conn, error) {
 	var err error
 	finalConn := conn
 	if c.nw.enableTls {
-		if c.nw.useGMTls {
-			// gm tls handshake
-			// outbound conn as client
-			tlsCfg := c.nw.gmTlsClientCfg.Clone()
-			tlsConn := gmtls.Client(finalConn, tlsCfg)
-			err = tlsConn.Handshake()
-			if err != nil {
-				_ = tlsConn.Close()
-				return nil, err
-			}
-			connState := tlsConn.ConnectionState()
-			// notice: seemingly gm tls not support protocol negotiate
-			//if connState.NegotiatedProtocol != tlsCfg.NextProtos[0] {
-			//	return nil, ErrNextProtoMismatch
-			//}
-			c.rPID, err = c.nw.loadPidFuncGm(connState.PeerCertificates)
-			if err != nil {
-				_ = tlsConn.Close()
-				return nil, err
-			}
-			finalConn = tlsConn
-		} else {
-			// tls handshake
-			// outbound conn as client
-			tlsCfg := c.nw.tlsCfg.Clone()
-			tlsConn := tls.Client(finalConn, tlsCfg)
-			err = tlsConn.Handshake()
-			if err != nil {
-				_ = tlsConn.Close()
-				return nil, err
-			}
-			connState := tlsConn.ConnectionState()
-			if connState.NegotiatedProtocol != tlsCfg.NextProtos[0] {
-				return nil, ErrNextProtoMismatch
-			}
-			c.rPID, err = c.nw.loadPidFunc(connState.PeerCertificates)
-			if err != nil {
-				_ = tlsConn.Close()
-				return nil, err
-			}
-			finalConn = tlsConn
+		// tls handshake
+		// outbound conn as client
+		tlsCfg := c.nw.tlsCfg.Clone()
+		tlsConn := cmTls.Client(finalConn, tlsCfg)
+		err = tlsConn.Handshake()
+		if err != nil {
+			_ = tlsConn.Close()
+			return nil, err
 		}
+		connState := tlsConn.ConnectionState()
+		if connState.NegotiatedProtocol != tlsCfg.NextProtos[0] {
+			return nil, ErrNextProtoMismatch
+		}
+		c.rPID, err = c.nw.loadPidFunc(connState.PeerCertificates)
+		if err != nil {
+			_ = tlsConn.Close()
+			return nil, err
+		}
+		finalConn = tlsConn
 	} else {
 		// exchange PID
 		// send pid

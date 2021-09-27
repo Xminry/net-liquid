@@ -7,10 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package host
 
 import (
-	"chainmaker.org/chainmaker/common/v2/crypto/asym"
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"strconv"
 	"testing"
 	"time"
@@ -19,6 +16,9 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/logger"
+	"chainmaker.org/chainmaker/common/v2/crypto/asym"
+	cmTls "chainmaker.org/chainmaker/common/v2/crypto/tls"
+	cmx509 "chainmaker.org/chainmaker/common/v2/crypto/x509"
 	"chainmaker.org/chainmaker/common/v2/helper"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
@@ -59,7 +59,7 @@ var (
 )
 
 func CreateHost(idx int, seeds map[peer.ID]ma.Multiaddr) (host.Host, error) {
-	certPool := x509.NewCertPool()
+	certPool := cmx509.NewCertPool()
 	for i := range certPEMs {
 		certPool.AppendCertsFromPEM(certPEMs[i])
 	}
@@ -67,29 +67,29 @@ func CreateHost(idx int, seeds map[peer.ID]ma.Multiaddr) (host.Host, error) {
 	if err != nil {
 		return nil, err
 	}
-	tlsCert, err := tls.X509KeyPair(certPEMs[idx], keyPEMs[idx])
+	tlsCert, err := cmTls.X509KeyPair(certPEMs[idx], keyPEMs[idx])
 	if err != nil {
 		return nil, err
 	}
 	hostCfg := &HostConfig{
-		TlsCfg: &tls.Config{
-			Certificates:       []tls.Certificate{tlsCert},
+		TlsCfg: &cmTls.Config{
+			Certificates:       []cmTls.Certificate{tlsCert},
 			InsecureSkipVerify: true,
-			ClientAuth:         tls.RequireAnyClientCert,
-			VerifyPeerCertificate: func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
+			ClientAuth:         cmTls.RequireAnyClientCert,
+			VerifyPeerCertificate: func(rawCerts [][]byte, _ [][]*cmx509.Certificate) error {
 				tlsCertBytes := rawCerts[0]
-				cert, err := x509.ParseCertificate(tlsCertBytes)
+				cert, err := cmx509.ParseCertificate(tlsCertBytes)
 				if err != nil {
 					return err
 				}
-				_, err = cert.Verify(x509.VerifyOptions{Roots: certPool})
+				_, err = cert.Verify(cmx509.VerifyOptions{Roots: certPool})
 				if err != nil {
 					return err
 				}
 				return nil
 			},
 		},
-		LoadPidFunc: func(certificates []*x509.Certificate) (peer.ID, error) {
+		LoadPidFunc: func(certificates []*cmx509.Certificate) (peer.ID, error) {
 			pid, err := helper.GetLibp2pPeerIdFromCertDer(certificates[0].Raw)
 			if err != nil {
 				return "", err

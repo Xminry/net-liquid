@@ -7,11 +7,11 @@ SPDX-License-Identifier: Apache-2.0
 package liquidnet
 
 import (
+	cmTlsS "chainmaker.org/chainmaker/chainmaker-net-common/cmtlssupport"
 	"chainmaker.org/chainmaker/chainmaker-net-common/common"
 	"chainmaker.org/chainmaker/chainmaker-net-common/common/priorityblocker"
-	netGMTls "chainmaker.org/chainmaker/chainmaker-net-common/gmtlssupport"
-	qTls "chainmaker.org/chainmaker/chainmaker-net-common/qtlssupport"
-	netTls "chainmaker.org/chainmaker/chainmaker-net-common/tlssupport"
+	qTlsS "chainmaker.org/chainmaker/chainmaker-net-common/qtlssupport"
+	"chainmaker.org/chainmaker/chainmaker-net-common/utils"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/broadcast"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/discovery"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/handler"
@@ -24,23 +24,11 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/pubsub"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/tlssupport"
 	"chainmaker.org/chainmaker/common/v2/crypto/asym"
-	cmx509 "chainmaker.org/chainmaker/common/v2/crypto/x509"
-	pbac "chainmaker.org/chainmaker/pb-go/v2/accesscontrol"
-	commonPb "chainmaker.org/chainmaker/pb-go/v2/common"
-	"chainmaker.org/chainmaker/pb-go/v2/syscontract"
 	api "chainmaker.org/chainmaker/protocol/v2"
-	"github.com/gogo/protobuf/proto"
 	ma "github.com/multiformats/go-multiaddr"
-	"github.com/tjfoc/gmsm/gmtls"
-	gmx509 "github.com/tjfoc/gmsm/x509"
-	qx509 "github.com/xiaotianfork/q-tls-common/x509"
 
 	"context"
-	"crypto/x509"
-	"crypto/x509/pkix"
 	"errors"
-	"fmt"
-	"strings"
 	"sync"
 	"time"
 )
@@ -112,18 +100,16 @@ type LiquidNet struct {
 	cryptoCfg             *cryptoConfig
 	memberStatusValidator *common.MemberStatusValidator
 
-	tlsChainTrustRoots *netTls.ChainTrustRoots
-	tlsCertValidator   *netTls.CertValidator
+	tlsChainTrustRoots *cmTlsS.ChainTrustRoots
+	tlsCertValidator   *cmTlsS.CertValidator
 
-	gmTlsChainTrustRoots *netGMTls.ChainTrustRoots
-	gmTlsCertValidator   *netGMTls.CertValidator
-
-	qTlsChainTrustRoots *qTls.ChainTrustRoots
-	qTlsCertValidator   *qTls.CertValidator
+	qTlsChainTrustRoots *qTlsS.ChainTrustRoots
+	qTlsCertValidator   *qTlsS.CertValidator
 
 	peerIdChainIdsRecorder *common.PeerIdChainIdsRecorder
 	certIdPeerIdMapper     *common.CertIdPeerIdMapper
 	peerIdTlsCertStore     *common.PeerIdTlsCertStore
+	peerIdPubKeyStore      *common.PeerIdPubKeyStore
 
 	subscribeTopic *types.StringSet
 
@@ -161,9 +147,9 @@ func NewLiquidNet() (*LiquidNet, error) {
 			MaxPubMessageSize: DefaultPubSubMaxMessageSize,
 		},
 		cryptoCfg: &cryptoConfig{
-			KeyBytes:                 nil,
-			CertBytes:                nil,
-			ChainTrustRootCertsBytes: make(map[string][][]byte),
+			KeyBytes:                       nil,
+			CertBytes:                      nil,
+			CustomChainTrustRootCertsBytes: make(map[string][][]byte),
 		},
 		memberStatusValidator: common.NewMemberStatusValidator(),
 		subscribeTopic:        &types.StringSet{},
@@ -174,6 +160,7 @@ func NewLiquidNet() (*LiquidNet, error) {
 	liquidNet.peerIdChainIdsRecorder = common.NewPeerIdChainIdsRecorder(log)
 	liquidNet.certIdPeerIdMapper = common.NewCertIdPeerIdMapper(log)
 	liquidNet.peerIdTlsCertStore = common.NewPeerIdTlsCertStore(log)
+	liquidNet.peerIdPubKeyStore = common.NewPeerIdPubKeyStore(log)
 	return liquidNet, nil
 }
 
@@ -442,58 +429,23 @@ func (l *LiquidNet) RefreshSeeds(seeds []string) error {
 	return nil
 }
 
-// AddTrustRoot add a tls root cert to the cert pool of chain.
-func (l *LiquidNet) AddTrustRoot(chainId string, rootCertByte []byte) error {
+// SetChainCustomTrustRoots set custom trust roots of chain.
+// In cert permission mode, if it is failed when verifying cert by access control of chains,
+// the cert will be verified by custom trust root pool again.
+func (l *LiquidNet) SetChainCustomTrustRoots(chainId string, roots [][]byte) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	if l.startUp {
 		if !l.hostCfg.Insecurity {
-			var err error
-			if l.hostCfg.NetType == lHost.QuicNetwork {
-				_, err = qTls.AppendNewCertsToTrustRoots(l.qTlsChainTrustRoots, chainId, rootCertByte)
-			} else if l.hostCfg.UseGMTls {
-				_, err = netGMTls.AppendNewCertsToTrustRoots(l.gmTlsChainTrustRoots, chainId, rootCertByte)
-			} else {
-				_, err = netTls.AppendNewCertsToTrustRoots(l.tlsChainTrustRoots, chainId, rootCertByte)
-			}
-			if err != nil {
-				log.Errorf("[LiquidNet] [AddTrustRoot] add trust root failed. %s", err.Error())
-				return err
+			bl := l.tlsChainTrustRoots.RefreshRootsFromPem(chainId, roots)
+			if !bl {
+				log.Errorf("[LiquidNet] [SetChainCustomTrustRoots] set custom trust roots failed. (chainId: %s)", chainId)
+				return
 			}
 		}
-		return nil
+		return
 	}
-	l.cryptoCfg.AddTrustRootCert(chainId, rootCertByte)
-	return nil
-}
-
-// RefreshTrustRoots refresh the cert pool of chain.
-func (l *LiquidNet) RefreshTrustRoots(chainId string, rootsCertsBytes [][]byte) error {
-	l.lock.Lock()
-	defer l.lock.Unlock()
-	if l.startUp {
-		if l.hostCfg.Insecurity {
-			log.Warn("[LiquidNet] [RefreshTrustRoots] tls disabled. ignored.")
-			return nil
-		}
-		var bl bool
-		if l.hostCfg.NetType == lHost.QuicNetwork {
-			bl = l.qTlsChainTrustRoots.RefreshRootsFromPem(chainId, rootsCertsBytes)
-		} else if l.hostCfg.UseGMTls {
-			bl = l.gmTlsChainTrustRoots.RefreshRootsFromPem(chainId, rootsCertsBytes)
-		} else {
-			bl = l.tlsChainTrustRoots.RefreshRootsFromPem(chainId, rootsCertsBytes)
-		}
-		if !bl {
-			return errors.New("refresh trust roots failed")
-		}
-		return nil
-	}
-	l.cryptoCfg.ChainTrustRootCertsBytes = make(map[string][][]byte)
-	for _, certsByte := range rootsCertsBytes {
-		l.cryptoCfg.AddTrustRootCert(chainId, certsByte)
-	}
-	return nil
+	l.cryptoCfg.SetCustomTrustRootCert(chainId, roots)
 }
 
 func (l *LiquidNet) setChainPubSubBlackPeer(chainId string, pid peer.ID) {
@@ -510,9 +462,9 @@ func (l *LiquidNet) removeChainPubSubBlackPeer(chainId string, pid peer.ID) {
 	}
 }
 
-// ReVerifyTrustRoots will verify tls certs existed with the trust
-// roots pool of the chain which id is the given chainId.
-func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
+// ReVerifyPeers will verify permission of peers existed with the access control module of the chain
+// which id is the given chainId.
+func (l *LiquidNet) ReVerifyPeers(chainId string) {
 	l.lock.Lock()
 	defer l.lock.Unlock()
 	if !l.startUp {
@@ -521,111 +473,64 @@ func (l *LiquidNet) ReVerifyTrustRoots(chainId string) {
 	if l.hostCfg.Insecurity {
 		return
 	}
-	peerIdTlsCertMap := l.peerIdTlsCertStore.StoreCopy()
-	if len(peerIdTlsCertMap) == 0 {
+	var peerIdTlsCertOrPubKeyMap map[string][]byte
+	if l.cryptoCfg.PubKeyMode {
+		peerIdTlsCertOrPubKeyMap = l.peerIdPubKeyStore.StoreCopy()
+	} else {
+		peerIdTlsCertOrPubKeyMap = l.peerIdTlsCertStore.StoreCopy()
+	}
+	if len(peerIdTlsCertOrPubKeyMap) == 0 {
 		return
 	}
 
 	// re verify exist peers
 	existPeers := l.peerIdChainIdsRecorder.PeerIdsOfChain(chainId)
 	for _, existPeerId := range existPeers {
-		bytes, ok := peerIdTlsCertMap[existPeerId]
+		bytes, ok := peerIdTlsCertOrPubKeyMap[existPeerId]
 		if ok {
-			if l.hostCfg.NetType == lHost.QuicNetwork {
-				// tls cert exist, parse to cert
-				cert, err := qx509.ParseCertificate(bytes)
-				if err != nil {
-					log.Errorf("[LiquidNet] [ReVerifyTrustRoots] re-verify quic tls cert failed. %s",
-						err.Error())
-					continue
-				}
-				// whether verify failed, if failed remove it
-				if !l.qTlsChainTrustRoots.VerifyCertOfChain(chainId, cert) {
-					l.peerIdChainIdsRecorder.RemovePeerChainId(existPeerId, chainId)
-					log.Infof("[LiquidNet] [ReVerifyTrustRoots] remove peer from chain, (pid: %s, chain id: %s)",
-						existPeerId, chainId)
-					l.setChainPubSubBlackPeer(chainId, peer.ID(existPeerId))
-				}
-				delete(peerIdTlsCertMap, existPeerId)
-				continue
+			var passed bool
+			var err error
+			// verify member status
+			if l.cryptoCfg.PubKeyMode {
+				passed, err = utils.ChainMemberStatusValidateWithPubKeyMode(chainId, l.memberStatusValidator, bytes)
+			} else {
+				passed, err = utils.ChainMemberStatusValidateWithCertMode(chainId, l.memberStatusValidator, bytes)
 			}
-			if l.hostCfg.UseGMTls {
-				// tls cert exist, parse to cert
-				cert, err := gmx509.ParseCertificate(bytes)
-				if err != nil {
-					log.Errorf("[LiquidNet] [ReVerifyTrustRoots] re-verify tls cert failed. %s", err.Error())
-					continue
-				}
-				// whether verify failed, if failed remove it
-				if !l.gmTlsChainTrustRoots.VerifyCertOfChain(chainId, cert) {
-					l.peerIdChainIdsRecorder.RemovePeerChainId(existPeerId, chainId)
-					log.Infof("[LiquidNet] [ReVerifyTrustRoots] remove peer from chain, (pid: %s, chain id: %s)",
-						existPeerId, chainId)
-					l.setChainPubSubBlackPeer(chainId, peer.ID(existPeerId))
-				}
-				delete(peerIdTlsCertMap, existPeerId)
-				continue
-			}
-			// tls cert exist, parse to cert
-			cert, err := x509.ParseCertificate(bytes)
 			if err != nil {
-				log.Errorf("[LiquidNet] [ReVerifyTrustRoots] re-verify tls cert failed. %s", err.Error())
+				log.Errorf("[LiquidNet][ReVerifyPeers] chain member status validate failed. %s", err.Error())
 				continue
 			}
-			// whether verify failed, if failed remove it
-			if !l.tlsChainTrustRoots.VerifyCertOfChain(chainId, cert) {
+			// if not passed, remove it from chain
+			if !passed {
 				l.peerIdChainIdsRecorder.RemovePeerChainId(existPeerId, chainId)
-				log.Infof("[LiquidNet] [ReVerifyTrustRoots] remove peer from chain, (pid: %s, chain id: %s)",
+				log.Infof("[LiquidNet][ReVerifyPeers] remove peer from chain, (pid: %s, chain id: %s)",
 					existPeerId, chainId)
 				l.setChainPubSubBlackPeer(chainId, peer.ID(existPeerId))
 			}
-			delete(peerIdTlsCertMap, existPeerId)
+			delete(peerIdTlsCertOrPubKeyMap, existPeerId)
 		} else {
 			l.peerIdChainIdsRecorder.RemovePeerChainId(existPeerId, chainId)
-			log.Infof("[LiquidNet] [ReVerifyTrustRoots] remove peer from chain, (pid: %s, chain id: %s)",
+			log.Infof("[LiquidNet][ReVerifyPeers] remove peer from chain, (pid: %s, chain id: %s)",
 				existPeerId, chainId)
 			l.setChainPubSubBlackPeer(chainId, peer.ID(existPeerId))
 		}
 	}
 	// verify other peers
-	for pid, bytes := range peerIdTlsCertMap {
-		if l.hostCfg.NetType == lHost.QuicNetwork {
-			cert, err := qx509.ParseCertificate(bytes)
-			if err != nil {
-				log.Errorf("[LiquidNet] [ReVerifyTrustRoots] re-verify quic tls cert failed. %s", err.Error())
-				continue
-			}
-			// whether verify success, if success add it
-			if l.qTlsChainTrustRoots.VerifyCertOfChain(chainId, cert) {
-				l.peerIdChainIdsRecorder.AddPeerChainId(pid, chainId)
-				log.Infof("[LiquidNet] [ReVerifyTrustRoots] add peer to chain, (pid: %s, chain id: %s)",
-					pid, chainId)
-				l.removeChainPubSubBlackPeer(chainId, peer.ID(pid))
-			}
-			continue
+	for pid, bytes := range peerIdTlsCertOrPubKeyMap {
+		var passed bool
+		var err error
+		// verify member status
+		if l.cryptoCfg.PubKeyMode {
+			passed, err = utils.ChainMemberStatusValidateWithPubKeyMode(chainId, l.memberStatusValidator, bytes)
+		} else {
+			passed, err = utils.ChainMemberStatusValidateWithCertMode(chainId, l.memberStatusValidator, bytes)
 		}
-		if l.hostCfg.UseGMTls {
-			cert, err := gmx509.ParseCertificate(bytes)
-			if err != nil {
-				log.Errorf("[LiquidNet] [ReVerifyTrustRoots] re-verify tls cert failed. %s", err.Error())
-				continue
-			}
-			// whether verify success, if success add it
-			if l.gmTlsChainTrustRoots.VerifyCertOfChain(chainId, cert) {
-				l.peerIdChainIdsRecorder.AddPeerChainId(pid, chainId)
-				log.Infof("[LiquidNet] [ReVerifyTrustRoots] add peer to chain, (pid: %s, chain id: %s)",
-					pid, chainId)
-				l.removeChainPubSubBlackPeer(chainId, peer.ID(pid))
-			}
-			continue
-		}
-		cert, err := x509.ParseCertificate(bytes)
 		if err != nil {
-			log.Errorf("[LiquidNet] [ReVerifyTrustRoots] re-verify tls cert failed. %s", err.Error())
+			log.Errorf("[LiquidNet][ReVerifyPeers] chain member status validate failed. %s", err.Error())
 			continue
 		}
-		// whether verify success, if success add it
-		if l.tlsChainTrustRoots.VerifyCertOfChain(chainId, cert) {
+		// if passed, add it to chain
+		if passed {
 			l.peerIdChainIdsRecorder.AddPeerChainId(pid, chainId)
 			log.Infof("[LiquidNet] [ReVerifyTrustRoots] add peer to chain, (pid: %s, chain id: %s)",
 				pid, chainId)
@@ -688,11 +593,6 @@ func (l *LiquidNet) confirmConfig() {
 			hc.ConnEliminationStrategy, DefaultPeerEliminationStrategy)
 		hc.ConnEliminationStrategy = DefaultPeerEliminationStrategy
 	}
-	var err error
-	hc.UseGMTls, err = tlssupport.UseGMTls(l.cryptoCfg.CertBytes)
-	if err != nil {
-		panic("[LiquidNet] can not confirm crypto cert:" + err.Error())
-	}
 	log.Info("[LiquidNet] config confirmed.")
 }
 
@@ -700,131 +600,53 @@ func (l *LiquidNet) setUpChainTrustRoots() error {
 	log.Info("[LiquidNet] chain trust roots setting...")
 	if !l.hostCfg.Insecurity {
 		// if tls enabled
-		if len(l.cryptoCfg.ChainTrustRootCertsBytes) == 0 {
+		if len(l.cryptoCfg.CustomChainTrustRootCertsBytes) == 0 {
 			log.Warn("[LiquidNet] no trust root certs found. use default security.")
 		} else {
-			if l.hostCfg.NetType == lHost.QuicNetwork {
-				trustRoots, err := qTls.BuildTlsTrustRoots(l.cryptoCfg.ChainTrustRootCertsBytes)
-				if err != nil {
-					log.Errorf("[LiquidNet] build quic tls trust root failed, %s", err.Error())
-					return err
-				}
-				l.qTlsChainTrustRoots = trustRoots
-			} else if l.hostCfg.UseGMTls {
-				trustRoots, err := netGMTls.BuildTlsTrustRoots(l.cryptoCfg.ChainTrustRootCertsBytes)
-				if err != nil {
-					log.Errorf("[LiquidNet] build gm tls trust root failed, %s", err.Error())
-					return err
-				}
-				l.gmTlsChainTrustRoots = trustRoots
-			} else {
-				trustRoots, err := netTls.BuildTlsTrustRoots(l.cryptoCfg.ChainTrustRootCertsBytes)
-				if err != nil {
-					log.Errorf("[LiquidNet] build tls trust root failed, %s", err.Error())
-					return err
-				}
-				l.tlsChainTrustRoots = trustRoots
+			trustRoots, err := cmTlsS.BuildTlsTrustRoots(l.cryptoCfg.CustomChainTrustRootCertsBytes)
+			if err != nil {
+				log.Errorf("[LiquidNet] build tls trust root failed, %s", err.Error())
+				return err
 			}
+			l.tlsChainTrustRoots = trustRoots
 		}
 	}
 	log.Info("[LiquidNet] chain trust roots set up.")
 	return nil
 }
 
-func (l *LiquidNet) setUpGMTlsConfig() error {
-	log.Info("[LiquidNet] gm tls config setting...")
-	// try gm tls
-	var (
-		gmTlsEncryptCert *gmtls.Certificate
-		peerId           string
-		err              error
-	)
-
-	gmTlsEncryptCert, peerId, err = netGMTls.GetCertAndPeerIdWithKeyPair(l.cryptoCfg.CertBytes, l.cryptoCfg.KeyBytes)
-	if err != nil {
-		return err
-	}
-	l.peerIdTlsCertStore.SetPeerTlsCert(peerId, gmTlsEncryptCert.Certificate[0])
-
-	// gm tls cert validator
-	l.gmTlsCertValidator = netGMTls.NewCertValidator(l.gmTlsChainTrustRoots, l.memberStatusValidator)
-
-	// gm tls config for server/client
-	var tlsServerCfg, tlsClientCfg *gmtls.Config
-	var randomSignCert bool
-	tlsServerCfg, randomSignCert, err = netGMTls.GenerateGMTlsServerConfigWithDualCerts(
-		gmTlsEncryptCert,
-		l.cryptoCfg.SignKeyBytes,
-		l.cryptoCfg.SignCertBytes,
-		l.gmTlsCertValidator)
-	if err != nil {
-		return err
-	}
-	if randomSignCert {
-		log.Info("[LiquidNet] sign key or cert not found, " +
-			"try to create a new cert with encrypt cert as temp sign cert.")
-		log.Debug("[LiquidNet] generate random sign certificate success.")
-	} else {
-		log.Info("[LiquidNet] sign key and cert found, use dual certificate mode.")
-	}
-	tlsClientCfg, err = netGMTls.NewTlsClientConfig(*gmTlsEncryptCert, l.gmTlsCertValidator, true)
-	if err != nil {
-		return err
-	}
-	l.hostCfg.GMTlsServerCfg = tlsServerCfg
-	l.hostCfg.GMTlsClientCfg = tlsClientCfg
-	l.hostCfg.LoadPidFuncGm = tlssupport.PeerIdFunctionGM()
-	l.hostCfg.UseGMTls = true
-	log.Info("[LiquidNet] gm tls config set up.")
-	return nil
-}
-
 func (l *LiquidNet) setUpTlsConfig() error {
 	log.Info("[LiquidNet] tls config setting...")
-	tlsCert, peerId, err := netTls.GetCertAndPeerIdWithKeyPair(l.cryptoCfg.CertBytes, l.cryptoCfg.KeyBytes)
-	if err != nil {
-		return err
-	}
-	l.peerIdTlsCertStore.SetPeerTlsCert(peerId, tlsCert.Certificate[0])
 	// tls cert validator
-	tcv := netTls.NewCertValidator(l.tlsChainTrustRoots, l.memberStatusValidator)
+	tcv := cmTlsS.NewCertValidator(l.cryptoCfg.PubKeyMode, l.memberStatusValidator, l.tlsChainTrustRoots)
 	l.tlsCertValidator = tcv
-	//tls config
-	tlsConfig, err := netTls.NewTlsConfig(
-		*tlsCert,
-		tcv,
-	)
-	if err != nil {
-		return err
+
+	if l.cryptoCfg.PubKeyMode {
+		// get private key
+		privateKey, err := asym.PrivateKeyFromPEM(l.cryptoCfg.KeyBytes, nil)
+		if err != nil {
+			return err
+		}
+		// create tls config
+		l.hostCfg.TlsCfg, err = cmTlsS.NewTlsConfigWithPubKeyMode(privateKey, l.tlsCertValidator)
+		if err != nil {
+			return err
+		}
+	} else {
+		// create tls cert
+		tlsCert, peerId, err := cmTlsS.GetCertAndPeerIdWithKeyPair(l.cryptoCfg.CertBytes, l.cryptoCfg.KeyBytes)
+		if err != nil {
+			return err
+		}
+		l.peerIdTlsCertStore.SetPeerTlsCert(peerId, tlsCert.Certificate[0])
+		// create tls config
+		l.hostCfg.TlsCfg, err = cmTlsS.NewTlsConfigWithCertMode(*tlsCert, l.tlsCertValidator)
+		if err != nil {
+			return err
+		}
 	}
-	l.hostCfg.TlsCfg = tlsConfig
 	l.hostCfg.LoadPidFunc = tlssupport.PeerIdFunction()
 	log.Info("[LiquidNet] tls config set up.")
-	return nil
-}
-
-func (l *LiquidNet) setUpQTlsConfig() error {
-	log.Info("[LiquidNet] quic tls config setting...")
-	tlsCert, peerId, err := qTls.GetCertAndPeerIdWithKeyPair(l.cryptoCfg.CertBytes, l.cryptoCfg.KeyBytes)
-	if err != nil {
-		return err
-	}
-	l.peerIdTlsCertStore.SetPeerTlsCert(peerId, tlsCert.Certificate[0])
-	// tls cert validator
-	tcv := qTls.NewCertValidator(l.qTlsChainTrustRoots, l.memberStatusValidator)
-	l.qTlsCertValidator = tcv
-	//tls config
-	tlsConfig, err := qTls.NewTlsConfig(
-		*tlsCert,
-		tcv,
-		l.hostCfg.UseGMTls,
-	)
-	if err != nil {
-		return err
-	}
-	l.hostCfg.QTlsCfg = tlsConfig
-	l.hostCfg.LoadPidFuncQ = tlssupport.PeerIdFunctionQuic()
-	log.Info("[LiquidNet] quic tls config set up.")
 	return nil
 }
 
@@ -855,7 +677,6 @@ func (l *LiquidNet) Start() error {
 	if netType == lHost.UnknownNetwork {
 		return ErrorWrongAddressOrUnsupported
 	}
-	l.hostCfg.NetType = netType
 	log.Infof("[LiquidNet] network type: %s", netType)
 
 	// set upt chain trust roots
@@ -864,14 +685,7 @@ func (l *LiquidNet) Start() error {
 		return err
 	}
 
-	// set up tls config , local peer.ID will be set using options set in this step
-	if l.hostCfg.NetType == lHost.QuicNetwork {
-		err = l.setUpQTlsConfig()
-	} else if l.hostCfg.UseGMTls {
-		err = l.setUpGMTlsConfig()
-	} else {
-		err = l.setUpTlsConfig()
-	}
+	err = l.setUpTlsConfig()
 	if err != nil {
 		return err
 	}
@@ -911,24 +725,6 @@ func (l *LiquidNet) Start() error {
 		return err
 	}
 
-	// start pub-sub
-	log.Info("[LiquidNet] pub-sub services attaching...")
-	l.psMap.Range(func(key, value interface{}) bool {
-		ps, _ := value.(*pubsub.ChainPubSub)
-		err = ps.AttachHost(l.host)
-		if err != nil {
-			return false
-		}
-		chainId, _ := key.(string)
-		log.Infof("[LiquidNet] pub-sub service attached. (chain-id: %s)", chainId)
-		err = l.attachDiscovery(chainId)
-		return err == nil
-	})
-	if err != nil {
-		return err
-	}
-	log.Info("[LiquidNet] pub-sub services attached.")
-
 	// set up discovery service
 	l.discoveryService, err = protocoldiscovery.NewProtocolBasedDiscovery(
 		l.host,
@@ -959,35 +755,6 @@ func (l *LiquidNet) resetChainPubSubBlackPeerWithPid(pidStr string) {
 
 func (l *LiquidNet) queryAndStoreDerivedInfoInCertValidator(peerIdStr string) {
 	if l.hostCfg.Insecurity {
-		return
-	}
-	if l.hostCfg.NetType == lHost.QuicNetwork {
-		derivedInfo := l.qTlsCertValidator.QueryDerivedInfoWithPeerId(peerIdStr)
-		if derivedInfo != nil {
-			l.peerIdTlsCertStore.SetPeerTlsCert(derivedInfo.PeerId, derivedInfo.TlsCertBytes)
-			for i := range derivedInfo.ChainIds {
-				chainId := derivedInfo.ChainIds[i]
-				l.peerIdChainIdsRecorder.AddPeerChainId(derivedInfo.PeerId, chainId)
-			}
-			l.certIdPeerIdMapper.Add(derivedInfo.CertId, derivedInfo.PeerId)
-			l.resetChainPubSubBlackPeerWithPid(derivedInfo.PeerId)
-		} else {
-			log.Warnf("[LiquidNet] no derived info found from quic tls cert validator! (pid: %s)", peerIdStr)
-		}
-		return
-	}
-	if l.hostCfg.UseGMTls {
-		derivedInfo := l.gmTlsCertValidator.QueryDerivedInfoWithPeerId(peerIdStr)
-		if derivedInfo != nil {
-			l.peerIdTlsCertStore.SetPeerTlsCert(derivedInfo.PeerId, derivedInfo.TlsCertBytes)
-			for i := range derivedInfo.ChainIds {
-				l.peerIdChainIdsRecorder.AddPeerChainId(derivedInfo.PeerId, derivedInfo.ChainIds[i])
-			}
-			l.certIdPeerIdMapper.Add(derivedInfo.CertId, derivedInfo.PeerId)
-			l.resetChainPubSubBlackPeerWithPid(derivedInfo.PeerId)
-		} else {
-			log.Warnf("[LiquidNet] no derived info found from gmtls cert validator! (pid: %s)", peerIdStr)
-		}
 		return
 	}
 	derivedInfo := l.tlsCertValidator.QueryDerivedInfoWithPeerId(peerIdStr)
@@ -1132,101 +899,6 @@ func (l *LiquidNet) GetNodeUidByCertId(certId string) (string, error) {
 		return "", err
 	}
 	return nodeUid, nil
-}
-
-// CheckRevokeTlsCerts check whether any tls certs revoked.
-func (l *LiquidNet) CheckRevokeTlsCerts(ac api.AccessControlProvider, certManageSystemContractPayload []byte) error {
-	var payload commonPb.Payload
-	err := proto.Unmarshal(certManageSystemContractPayload, &payload)
-	if err != nil {
-		return fmt.Errorf("resolve payload failed: %v", err)
-	}
-	switch payload.Method {
-	case syscontract.CertManageFunction_CERTS_REVOKE.String():
-		return l.checkRevokeTlsCertsWithSystemContractPayload(ac, &payload)
-	default:
-		return nil
-	}
-}
-
-func (l *LiquidNet) checkRevokeTlsCertsWithSystemContractPayload(
-	ac api.AccessControlProvider,
-	payload *commonPb.Payload) error {
-	allPeerIdAndCertBytesMap := l.peerIdTlsCertStore.StoreCopy()
-	if len(allPeerIdAndCertBytesMap) == 0 {
-		return nil
-	}
-	peerIdCertMap, err := common.ParsePeerIdCertBytesMapToPeerIdCertMap(allPeerIdAndCertBytesMap)
-	if err != nil {
-		log.Errorf("[LiquidNet] [checkRevokeTlsCertsWithSystemContractPayload] parse bytes to cert failed, %s",
-			err.Error())
-		return err
-	}
-	return l.checkRevokeThenDisconnect(ac, payload, peerIdCertMap)
-}
-
-func (l *LiquidNet) checkRevokeThenDisconnect(
-	ac api.AccessControlProvider,
-	payload *commonPb.Payload,
-	peerIdCertMap map[string]*cmx509.Certificate) error {
-	for _, param := range payload.Parameters {
-		if param.Key == "cert_crl" {
-			crlStr := strings.Replace(string(param.Value), ",", "\n", -1)
-			_, err := ac.VerifyRelatedMaterial(pbac.VerifyType_CRL, []byte(crlStr))
-			if err != nil {
-				log.Errorf("[LiquidNet] [checkRevokeThenDisconnect] validate crl failed, %s", err.Error())
-				return err
-			}
-
-			var crls []*pkix.CertificateList
-
-			crl, err := x509.ParseCRL([]byte(crlStr))
-			if err != nil {
-				log.Errorf("[LiquidNet] [checkRevokeThenDisconnect] validate crl failed, %s", err.Error())
-				return err
-			}
-			crls = append(crls, crl)
-			if err != nil {
-				log.Errorf("[LiquidNet] [checkRevokeThenDisconnect] validate crl failed, %s", err.Error())
-				return err
-			}
-			revokedPeerIds := l.findRevokedPeerIdsByCRLs(crls, peerIdCertMap)
-			return l.closeRevokedPeerConnection(revokedPeerIds)
-		}
-	}
-	return nil
-}
-
-func (l *LiquidNet) findRevokedPeerIdsByCRLs(
-	crls []*pkix.CertificateList,
-	peerIdCertMap map[string]*cmx509.Certificate) []string {
-	revokedPeerIds := make([]string, 0)
-	for _, crl := range crls {
-		for _, rc := range crl.TBSCertList.RevokedCertificates {
-			for pid := range peerIdCertMap {
-				cert := peerIdCertMap[pid]
-				if rc.SerialNumber.Cmp(cert.SerialNumber) == 0 {
-					revokedPeerIds = append(revokedPeerIds, pid)
-				}
-			}
-		}
-	}
-	return revokedPeerIds
-}
-
-func (l *LiquidNet) closeRevokedPeerConnection(revokedPeerIds []string) error {
-	for idx := range revokedPeerIds {
-		pid := revokedPeerIds[idx]
-		log.Infof("[LiquidNet] [closeRevokedPeerConnection] revoked peer found(pid: %s)", pid)
-		peerId := peer.ID(pid)
-		l.memberStatusValidator.AddPeerId(pid)
-		if l.host.ConnMgr().IsConnected(peerId) {
-			conn := l.host.ConnMgr().GetPeerConn(peerId)
-			_ = conn.Close()
-			log.Infof("[LiquidNet] [closeRevokedPeerConnection] closing revoked peer connection(pid: %s)", pid)
-		}
-	}
-	return nil
 }
 
 // AddAC add a AccessControlProvider for revoked validator.
