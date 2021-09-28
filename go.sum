@@ -1,5 +1,5 @@
-chainmaker.org/chainmaker/chainmaker-net-common v0.0.6-0.20210928064127-d056df1dbf78 h1:keyPXYzNFtePvSzZlJEtqwCxmvHF9uoeuzaItWcxGoc=
-chainmaker.org/chainmaker/chainmaker-net-common v0.0.6-0.20210928064127-d056df1dbf78/go.mod h1:AV6U6zNeslGksSLrbbomhM1KC0CnPHHRQawx6eL0d7I=
+chainmaker.org/chainmaker/chainmaker-net-common v0.0.6-0.20210928084825-ae4aec944259 h1:h2JrhXEgQ7QE6wtnFDTYpduB/b6hpLcAdkLjPuM14k4=
+chainmaker.org/chainmaker/chainmaker-net-common v0.0.6-0.20210928084825-ae4aec944259/go.mod h1:AV6U6zNeslGksSLrbbomhM1KC0CnPHHRQawx6eL0d7I=
 chainmaker.org/chainmaker/common/v2 v2.0.1-0.20210901114756-9114511c2b70/go.mod h1:5PBx3EAorpJ+2PMtC15DHGUDLjLfXiEFp6LX67xxCAo=
 chainmaker.org/chainmaker/common/v2 v2.0.1-0.20210906095952-6d8f2c6cede0/go.mod h1:5PBx3EAorpJ+2PMtC15DHGUDLjLfXiEFp6LX67xxCAo=
 chainmaker.org/chainmaker/common/v2 v2.0.1-0.20210927025216-3d740cb6258e h1:tprWpicpj5iRWhF57Gf2IRfFpGwVpmSdd0DiH0D4AlU=
