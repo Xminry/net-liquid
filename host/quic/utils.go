@@ -3,9 +3,10 @@ package quic
 import (
 	cmTls "chainmaker.org/chainmaker/common/v2/crypto/tls"
 	cmx509 "chainmaker.org/chainmaker/common/v2/crypto/x509"
+	"crypto"
 	"crypto/tls"
 	"crypto/x509"
-	gmx509 "github.com/tjfoc/gmsm/x509"
+	"github.com/tjfoc/gmsm/sm2"
 	qx509 "github.com/xiaotianfork/q-tls-common/x509"
 )
 
@@ -70,12 +71,8 @@ func parseSignatureScheme(ss []cmTls.SignatureScheme) []tls.SignatureScheme {
 	return res
 }
 
-// UseGMTls return true if it is a tls certificate with GM crypto.
-func UseGMTls(raw []byte) (bool, error) {
-	_, err := x509.ParseCertificate(raw)
-	if err == nil {
-		return false, nil
-	}
-	_, err = gmx509.ParseCertificate(raw)
-	return err == nil, nil
+// IsGMPrivateKey return true if it is a sm2.PrivateKey.
+func IsGMPrivateKey(sk crypto.PrivateKey) bool {
+	_, bl := sk.(*sm2.PrivateKey)
+	return bl
 }

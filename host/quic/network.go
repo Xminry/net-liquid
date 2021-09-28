@@ -109,10 +109,7 @@ func WithTlsCfg(tlsCfg *cmTls.Config) Option {
 		n.cmTlsCfg = tlsCfg
 		// wrap tls config
 		var cipherSuite []uint16
-		useSm, err := UseGMTls(tlsCfg.Certificates[0].Leaf.Raw)
-		if err != nil {
-			return err
-		}
+		useSm := IsGMPrivateKey(tlsCfg.Certificates[0].PrivateKey)
 		if useSm {
 			cipherSuite = []uint16{0x00c6}
 		} else {
