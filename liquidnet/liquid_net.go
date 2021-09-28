@@ -10,7 +10,6 @@ import (
 	cmTlsS "chainmaker.org/chainmaker/chainmaker-net-common/cmtlssupport"
 	"chainmaker.org/chainmaker/chainmaker-net-common/common"
 	"chainmaker.org/chainmaker/chainmaker-net-common/common/priorityblocker"
-	qTlsS "chainmaker.org/chainmaker/chainmaker-net-common/qtlssupport"
 	"chainmaker.org/chainmaker/chainmaker-net-common/utils"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/broadcast"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/discovery"
@@ -103,9 +102,6 @@ type LiquidNet struct {
 
 	tlsChainTrustRoots *cmTlsS.ChainTrustRoots
 	tlsCertValidator   *cmTlsS.CertValidator
-
-	qTlsChainTrustRoots *qTlsS.ChainTrustRoots
-	qTlsCertValidator   *qTlsS.CertValidator
 
 	peerIdChainIdsRecorder *common.PeerIdChainIdsRecorder
 	certIdPeerIdMapper     *common.CertIdPeerIdMapper
@@ -628,8 +624,12 @@ func (l *LiquidNet) setUpTlsConfig(netType lHost.NetworkType) error {
 		if err != nil {
 			return err
 		}
-		// create tls config
-		l.hostCfg.TlsCfg, err = cmTlsS.NewTlsConfigWithPubKeyMode(privateKey, l.tlsCertValidator)
+		// create tls cert
+		if netType == lHost.QuicNetwork {
+			l.hostCfg.TlsCfg, err = cmTlsS.NewTlsConfigWithPubKeyMode4Quic(privateKey, l.tlsCertValidator)
+		} else {
+			l.hostCfg.TlsCfg, err = cmTlsS.NewTlsConfigWithPubKeyMode(privateKey, l.tlsCertValidator)
+		}
 		if err != nil {
 			return err
 		}
@@ -640,11 +640,10 @@ func (l *LiquidNet) setUpTlsConfig(netType lHost.NetworkType) error {
 			err     error
 		)
 
+		// create tls cert
 		if netType == lHost.QuicNetwork {
-			// create tls cert
 			tlsCert, peerId, err = cmTlsS.GetCertAndPeerIdWithKeyPair4Quic(l.cryptoCfg.CertBytes, l.cryptoCfg.KeyBytes)
 		} else {
-			// create tls cert
 			tlsCert, peerId, err = cmTlsS.GetCertAndPeerIdWithKeyPair(l.cryptoCfg.CertBytes, l.cryptoCfg.KeyBytes)
 		}
 		if err != nil {
