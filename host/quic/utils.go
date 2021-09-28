@@ -5,6 +5,7 @@ import (
 	cmx509 "chainmaker.org/chainmaker/common/v2/crypto/x509"
 	"crypto/tls"
 	"crypto/x509"
+	gmx509 "github.com/tjfoc/gmsm/x509"
 	qx509 "github.com/xiaotianfork/q-tls-common/x509"
 )
 
@@ -67,4 +68,14 @@ func parseSignatureScheme(ss []cmTls.SignatureScheme) []tls.SignatureScheme {
 		res = append(res, tls.SignatureScheme(s))
 	}
 	return res
+}
+
+// UseGMTls return true if it is a tls certificate with GM crypto.
+func UseGMTls(raw []byte) (bool, error) {
+	_, err := x509.ParseCertificate(raw)
+	if err == nil {
+		return false, nil
+	}
+	_, err = gmx509.ParseCertificate(raw)
+	return err == nil, nil
 }

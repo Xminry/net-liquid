@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package quic
 
 import (
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/tlssupport"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -110,7 +109,7 @@ func WithTlsCfg(tlsCfg *cmTls.Config) Option {
 		n.cmTlsCfg = tlsCfg
 		// wrap tls config
 		var cipherSuite []uint16
-		useSm, err := tlssupport.UseGMTls(tlsCfg.Certificates[0].Leaf.Raw)
+		useSm, err := UseGMTls(tlsCfg.Certificates[0].Leaf.Raw)
 		if err != nil {
 			return err
 		}
