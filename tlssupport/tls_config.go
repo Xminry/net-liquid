@@ -7,10 +7,11 @@ SPDX-License-Identifier: Apache-2.0
 package tlssupport
 
 import (
+	cmTls "chainmaker.org/chainmaker/common/v2/crypto/tls"
+	cmx509 "chainmaker.org/chainmaker/common/v2/crypto/x509"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"errors"
@@ -35,21 +36,21 @@ const (
 
 // MakeTlsConfigAndLoadPeerIdFuncWithPrivateKey create a tls config and load peer id function for the host config with private key given.
 func MakeTlsConfigAndLoadPeerIdFuncWithPrivateKey(
-	privateKey crypto.PrivateKey) (*tls.Config, types.LoadPeerIdFromTlsCertFunc, error) {
+	privateKey crypto.PrivateKey) (*cmTls.Config, types.LoadPeerIdFromCMTlsCertFunc, error) {
 	cert, err := PrivateKeyToCertificate(privateKey)
 	if err != nil {
 		return nil, nil, err
 	}
-	conf := &tls.Config{
-		MinVersion:               tls.VersionTLS13,
+	conf := &cmTls.Config{
+		MinVersion:               cmTls.VersionTLS13,
 		PreferServerCipherSuites: preferServerCipherSuites(),
 		InsecureSkipVerify:       true, // This is not insecure here. We will verify the cert chain ourselves.
-		ClientAuth:               tls.RequireAnyClientCert,
-		Certificates:             []tls.Certificate{*cert},
-		VerifyPeerCertificate: func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
-			chain := make([]*x509.Certificate, len(rawCerts))
+		ClientAuth:               cmTls.RequireAnyClientCert,
+		Certificates:             []cmTls.Certificate{*cert},
+		VerifyPeerCertificate: func(rawCerts [][]byte, _ [][]*cmx509.Certificate) error {
+			chain := make([]*cmx509.Certificate, len(rawCerts))
 			for i := 0; i < len(rawCerts); i++ {
-				cert, err := x509.ParseCertificate(rawCerts[i])
+				cert, err := cmx509.ParseCertificate(rawCerts[i])
 				if err != nil {
 					return err
 				}
@@ -69,7 +70,7 @@ func MakeTlsConfigAndLoadPeerIdFuncWithPrivateKey(
 		SessionTicketsDisabled: true,
 	}
 
-	var loadPidFunc types.LoadPeerIdFromTlsCertFunc = func(certificates []*x509.Certificate) (peer.ID, error) {
+	var loadPidFunc types.LoadPeerIdFromCMTlsCertFunc = func(certificates []*cmx509.Certificate) (peer.ID, error) {
 		if len(certificates) == 0 {
 			return "", errors.New("empty certificates")
 		}
@@ -88,7 +89,7 @@ func MakeTlsConfigAndLoadPeerIdFuncWithPrivateKey(
 	return conf, loadPidFunc, nil
 }
 
-func searchCertExtension(cert *x509.Certificate) *pkix.Extension {
+func searchCertExtension(cert *cmx509.Certificate) *pkix.Extension {
 	for _, ext := range cert.Extensions {
 		if extensionIDEqual(ext.Id, extensionID) {
 			return &ext
@@ -116,14 +117,14 @@ func createExtValueWithKeyBytesAndSignatureBytes(keyBytes, signatureBytes []byte
 	return extensionValue
 }
 
-func verifyCertChain(chain []*x509.Certificate) (bool, error) {
+func verifyCertChain(chain []*cmx509.Certificate) (bool, error) {
 	if len(chain) != 1 {
 		return false, errors.New("no certificates found")
 	}
 	cert := chain[0]
-	pool := x509.NewCertPool()
+	pool := cmx509.NewCertPool()
 	pool.AddCert(cert)
-	if _, err := cert.Verify(x509.VerifyOptions{Roots: pool}); err != nil {
+	if _, err := cert.Verify(cmx509.VerifyOptions{Roots: pool}); err != nil {
 		return false, fmt.Errorf("certificate verification failed: %s", err)
 	}
 
@@ -149,13 +150,13 @@ func verifyCertChain(chain []*x509.Certificate) (bool, error) {
 }
 
 // PrivateKeyToCertificate create a certificate simply with a private key.
-func PrivateKeyToCertificate(privateKey crypto.PrivateKey) (*tls.Certificate, error) {
+func PrivateKeyToCertificate(privateKey crypto.PrivateKey) (*cmTls.Certificate, error) {
 	certKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return nil, err
 	}
 
-	certKeyPub, err := x509.MarshalPKIXPublicKey(certKey.Public())
+	certKeyPub, err := cmx509.MarshalPKIXPublicKey(certKey.Public())
 	if err != nil {
 		return nil, err
 	}
@@ -182,11 +183,11 @@ func PrivateKeyToCertificate(privateKey crypto.PrivateKey) (*tls.Certificate, er
 			{Id: extensionID, Value: extensionValue},
 		},
 	}
-	certDER, err := x509.CreateCertificate(rand.Reader, tmpl, tmpl, certKey.Public(), certKey)
+	certDER, err := cmx509.CreateCertificate(rand.Reader, tmpl, tmpl, certKey.Public(), certKey)
 	if err != nil {
 		return nil, err
 	}
-	return &tls.Certificate{
+	return &cmTls.Certificate{
 		Certificate: [][]byte{certDER},
 		PrivateKey:  certKey,
 	}, nil
