@@ -24,6 +24,7 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/pubsub"
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/tlssupport"
 	"chainmaker.org/chainmaker/common/v2/crypto/asym"
+	"chainmaker.org/chainmaker/common/v2/crypto/tls"
 	api "chainmaker.org/chainmaker/protocol/v2"
 	ma "github.com/multiformats/go-multiaddr"
 
@@ -615,7 +616,7 @@ func (l *LiquidNet) setUpChainTrustRoots() error {
 	return nil
 }
 
-func (l *LiquidNet) setUpTlsConfig() error {
+func (l *LiquidNet) setUpTlsConfig(netType lHost.NetworkType) error {
 	log.Info("[LiquidNet] tls config setting...")
 	// tls cert validator
 	tcv := cmTlsS.NewCertValidator(l.cryptoCfg.PubKeyMode, l.memberStatusValidator, l.tlsChainTrustRoots)
@@ -633,8 +634,19 @@ func (l *LiquidNet) setUpTlsConfig() error {
 			return err
 		}
 	} else {
-		// create tls cert
-		tlsCert, peerId, err := cmTlsS.GetCertAndPeerIdWithKeyPair(l.cryptoCfg.CertBytes, l.cryptoCfg.KeyBytes)
+		var (
+			tlsCert *tls.Certificate
+			peerId  string
+			err     error
+		)
+
+		if netType == lHost.QuicNetwork {
+			// create tls cert
+			tlsCert, peerId, err = cmTlsS.GetCertAndPeerIdWithKeyPair4Quic(l.cryptoCfg.CertBytes, l.cryptoCfg.KeyBytes)
+		} else {
+			// create tls cert
+			tlsCert, peerId, err = cmTlsS.GetCertAndPeerIdWithKeyPair(l.cryptoCfg.CertBytes, l.cryptoCfg.KeyBytes)
+		}
 		if err != nil {
 			return err
 		}
@@ -685,7 +697,7 @@ func (l *LiquidNet) Start() error {
 		return err
 	}
 
-	err = l.setUpTlsConfig()
+	err = l.setUpTlsConfig(netType)
 	if err != nil {
 		return err
 	}
