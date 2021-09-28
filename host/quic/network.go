@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package quic
 
 import (
+	"chainmaker.org/chainmaker/chainmaker-net-liquid/tlssupport"
 	"context"
 	"crypto/tls"
 	"crypto/x509"
@@ -108,13 +109,16 @@ func WithTlsCfg(tlsCfg *cmTls.Config) Option {
 	return func(n *qNetwork) error {
 		n.cmTlsCfg = tlsCfg
 		// wrap tls config
-		//var cipherSuite []uint16
-		//useSm := false // TODO: 加入启用国密判断
-		//if useSm {
-		//	cipherSuite = []uint16{0x00c6}
-		//} else {
-		//	cipherSuite = []uint16{0x1301, 0x1302, 0x1303}
-		//}
+		var cipherSuite []uint16
+		useSm, err := tlssupport.UseGMTls(tlsCfg.Certificates[0].Leaf.Raw)
+		if err != nil {
+			return err
+		}
+		if useSm {
+			cipherSuite = []uint16{0x00c6}
+		} else {
+			cipherSuite = []uint16{0x1301, 0x1302, 0x1303}
+		}
 		certs, e2 := ParseCMTLSCertsToGoTLSCerts(tlsCfg.Certificates)
 		if e2 != nil {
 			return e2
@@ -128,7 +132,7 @@ func WithTlsCfg(tlsCfg *cmTls.Config) Option {
 			ClientAuth:            tls.RequireAnyClientCert,
 			VerifyPeerCertificate: verifyFunc,
 			MaxVersion:            tls.VersionTLS13,
-			//CipherSuites:          cipherSuite,
+			CipherSuites:          cipherSuite,
 		}
 		return nil
 	}
