@@ -94,11 +94,11 @@ func (c *HostConfig) AddDirectPeer(addr string) error {
 	if err != nil {
 		return err
 	}
-	netMA, pid := util.GetNetAddrAndPidFromNormalMultiAddr(mA)
+	_, pid := util.GetNetAddrAndPidFromNormalMultiAddr(mA)
 	if c.DirectPeers == nil {
 		c.DirectPeers = make(map[peer.ID]ma.Multiaddr)
 	}
-	c.DirectPeers[pid] = netMA
+	c.DirectPeers[pid] = mA
 	return nil
 }
 
