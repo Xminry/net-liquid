@@ -632,8 +632,6 @@ func (l *LiquidNet) setUpTlsConfig(netType lHost.NetworkType) error {
 		// store pub key
 		pkPem, err := privateKey.PublicKey().String()
 		l.peerIdPubKeyStore.SetPeerPubKey(pid, []byte(pkPem))
-		// store cert id, public key pem string as cert id
-		l.certIdPeerIdMapper.Add(pkPem, pid)
 		// create tls cert
 		if netType == lHost.QuicNetwork {
 			l.hostCfg.TlsCfg, err = cmTlsS.NewTlsConfigWithPubKeyMode4Quic(privateKey, l.tlsCertValidator)
@@ -810,6 +808,7 @@ func (l *LiquidNet) bindNotifiee() {
 			log.Debugf("[LiquidNet] peer disconnect. (pid: %s)", peerIdStr)
 			l.peerIdChainIdsRecorder.RemoveAllByPeerId(peerIdStr)
 			l.peerIdTlsCertStore.RemoveByPeerId(peerIdStr)
+			l.peerIdPubKeyStore.RemoveByPeerId(peerIdStr)
 			l.certIdPeerIdMapper.RemoveByPeerId(peerIdStr)
 		},
 	}
