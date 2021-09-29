@@ -24,6 +24,7 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/tlssupport"
 	"chainmaker.org/chainmaker/common/v2/crypto/asym"
 	"chainmaker.org/chainmaker/common/v2/crypto/tls"
+	"chainmaker.org/chainmaker/common/v2/helper"
 	api "chainmaker.org/chainmaker/protocol/v2"
 	ma "github.com/multiformats/go-multiaddr"
 
@@ -624,6 +625,15 @@ func (l *LiquidNet) setUpTlsConfig(netType lHost.NetworkType) error {
 		if err != nil {
 			return err
 		}
+		pid, err := helper.CreateLibp2pPeerIdWithPrivateKey(privateKey)
+		if err != nil {
+			return err
+		}
+		// store pub key
+		pkPem, err := privateKey.PublicKey().String()
+		l.peerIdPubKeyStore.SetPeerPubKey(pid, []byte(pkPem))
+		// store cert id, public key pem string as cert id
+		l.certIdPeerIdMapper.Add(pkPem, pid)
 		// create tls cert
 		if netType == lHost.QuicNetwork {
 			l.hostCfg.TlsCfg, err = cmTlsS.NewTlsConfigWithPubKeyMode4Quic(privateKey, l.tlsCertValidator)
@@ -633,6 +643,7 @@ func (l *LiquidNet) setUpTlsConfig(netType lHost.NetworkType) error {
 		if err != nil {
 			return err
 		}
+
 	} else {
 		var (
 			tlsCert *tls.Certificate
@@ -646,6 +657,7 @@ func (l *LiquidNet) setUpTlsConfig(netType lHost.NetworkType) error {
 		} else {
 			tlsCert, peerId, err = cmTlsS.GetCertAndPeerIdWithKeyPair(l.cryptoCfg.CertBytes, l.cryptoCfg.KeyBytes)
 		}
+		// store tls cert
 		if err != nil {
 			return err
 		}
