@@ -34,7 +34,8 @@ func LoadChainIdAndFlagWithProtocolId(protocolId protocol.ID) (string, string, e
 	if !strings.HasPrefix(protocolStr, NetProtocolTemplatePrefix) {
 		return "", "", errors.New("parse chain id and message flag failed")
 	}
-	chainIdAndFlag := strings.SplitN(strings.TrimPrefix(protocolStr, NetProtocolTemplatePrefix), protocolSeparator, 2)
+	chainIdAndFlag := strings.SplitN(strings.TrimPrefix(protocolStr, NetProtocolTemplatePrefix),
+		protocolSeparator, 2)
 	if len(chainIdAndFlag) != 2 {
 		return "", "", errors.New("parse chain id and mseeage flag fail")
 	}

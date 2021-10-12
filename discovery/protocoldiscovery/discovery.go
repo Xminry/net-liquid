@@ -258,7 +258,8 @@ func (d *ProtocolBasedDiscovery) handlerFindRes(serviceName string, msg *pb.Disc
 	}
 }
 
-func (d *ProtocolBasedDiscovery) createProtocolMsgHandler(serviceName string, protocol protocol.ID) handler.MsgPayloadHandler {
+func (d *ProtocolBasedDiscovery) createProtocolMsgHandler(
+	serviceName string, protocol protocol.ID) handler.MsgPayloadHandler {
 	return func(senderPID peer.ID, msgPayload []byte) {
 		// parse payload as DiscoveryMsg
 		msg := &pb.DiscoveryMsg{}

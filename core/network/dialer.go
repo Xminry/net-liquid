@@ -14,6 +14,6 @@ import (
 
 // Dialer provides a way to establish a connection with others.
 type Dialer interface {
-	// Dial try to establish a outbound connection with the remote address.
+	// Dial try to establish an outbound connection with the remote address.
 	Dial(ctx context.Context, remoteAddr ma.Multiaddr) (Conn, error)
 }

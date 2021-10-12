@@ -55,7 +55,7 @@ var (
 	// ErrEmptyLocalPeerId will be returned if load local peer id failed.
 	ErrEmptyLocalPeerId = errors.New("empty local peer id")
 	// ErrNoUsableLocalAddress will be returned if no usable local address found
-	// when the local listening address is a Unspecified address.
+	// when the local listening address is an unspecified address.
 	ErrNoUsableLocalAddress = errors.New("no usable local address found")
 	// ErrLocalPidNotSet will be returned if local peer id not set on insecurity mode.
 	ErrLocalPidNotSet = errors.New("local peer id not set")
@@ -122,7 +122,7 @@ func WithLoadPidFunc(f types.LoadPeerIdFromCMTlsCertFunc) Option {
 }
 
 // WithLocalPeerId will set the local peer.ID for the network.
-// If LoadPidFunc option set, the local peer.ID set by this method will be overwritten probably.
+// If LoadPidFunc option set, the local peer.ID set by this method will be overwritten, probably.
 func WithLocalPeerId(pid peer.ID) Option {
 	return func(n *tcpNetwork) error {
 		n.lPID = pid
@@ -284,7 +284,8 @@ func (t *tcpNetwork) Dial(ctx context.Context, remoteAddr ma.Multiaddr) (network
 	}
 	if remotePID != "" && tc.rPID != remotePID {
 		_ = tc.Close()
-		t.logger.Debugf("[Network][Dial] pid mismatch, expected: %s, got: %s, close the connection.", remotePID, tc.rPID)
+		t.logger.Debugf("[Network][Dial] pid mismatch, expected: %s, got: %s, close the connection.",
+			remotePID, tc.rPID)
 		return nil, ErrPidMismatch
 	}
 	// call conn handler

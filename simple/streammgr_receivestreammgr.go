@@ -54,7 +54,7 @@ func (r *receiveStreamManager) Reset() {
 	r.peerConnStreams = sync.Map{}
 }
 
-// ClosePeerReceiveStreams will close all the receive streams whose remote peer id is the given pid
+// ClosePeerReceiveStreams will close all the receiving streams whose remote peer id is the given pid
 // and which created by the given connection.
 func (r *receiveStreamManager) ClosePeerReceiveStreams(pid peer.ID, conn network.Conn) error {
 	a, ok := r.peerConnStreams.Load(pid)
@@ -92,7 +92,7 @@ func (r *receiveStreamManager) SetPeerReceiveStreamMaxCount(max int) {
 	atomic.StoreInt32(&r.peerReceiveStreamMaxCount, int32(max))
 }
 
-// AddPeerReceiveStream append a receive stream to manager.
+// AddPeerReceiveStream append a receiving stream to manager.
 func (r *receiveStreamManager) AddPeerReceiveStream(
 	pid peer.ID, conn network.Conn, stream network.ReceiveStream) error {
 	a, _ := r.peerConnStreams.LoadOrStore(pid, &connReceiveStreamsMap{})
@@ -112,7 +112,7 @@ func (r *receiveStreamManager) AddPeerReceiveStream(
 	return nil
 }
 
-// RemovePeerReceiveStream remove a receive stream from manager.
+// RemovePeerReceiveStream remove a receiving stream from manager.
 func (r *receiveStreamManager) RemovePeerReceiveStream(
 	pid peer.ID, conn network.Conn, stream network.ReceiveStream) error {
 	a, ok := r.peerConnStreams.Load(pid)

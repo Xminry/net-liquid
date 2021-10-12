@@ -18,7 +18,7 @@ type Listener interface {
 	io.Closer
 	// Listen will run a task that start create listeners with the given
 	// addresses waiting for accepting inbound connections.
-	Listen(ctx context.Context, addrs ...ma.Multiaddr) error
+	Listen(ctx context.Context, addresses ...ma.Multiaddr) error
 	// ListenAddresses return the list of the local addresses for listeners.
 	ListenAddresses() []ma.Multiaddr
 }

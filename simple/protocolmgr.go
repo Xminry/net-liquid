@@ -48,7 +48,7 @@ var (
 
 var _ mgr.ProtocolExchanger = (*protocolExchanger)(nil)
 
-// protocolExchanger is an simple implementation of mgr.ProtocolExchanger interface.
+// protocolExchanger is a simple implementation of mgr.ProtocolExchanger interface.
 type protocolExchanger struct {
 	host          host.Host
 	protocolMgr   mgr.ProtocolManager
@@ -328,7 +328,7 @@ func (p *protocolExchanger) PushProtocols(pid peer.ID) error {
 
 var _ mgr.ProtocolManager = (*simpleProtocolMgr)(nil)
 
-// simpleProtocolMgr is an simple implementation of mgr.ProtocolManager interface.
+// simpleProtocolMgr is a simple implementation of mgr.ProtocolManager interface.
 // ProtocolManager manages all protocol and protocol msg handler for all peers.
 type simpleProtocolMgr struct {
 	sync.Mutex

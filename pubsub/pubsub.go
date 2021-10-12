@@ -85,7 +85,7 @@ type config struct {
 }
 
 // Option for ChainPubSub.
-type Option func(pubsub *ChainPubSub)
+type Option func(cps *ChainPubSub)
 
 var _ broadcast.PubSub = (*ChainPubSub)(nil)
 
@@ -437,7 +437,8 @@ func (p *ChainPubSub) ProtocolMsgHandler() handler.MsgPayloadHandler {
 		// whether sender was black peer
 		_, black := p.blacklist.Load(senderPID)
 		if black {
-			p.logger.Debugf("[ChainPubSub] ignore app/spread-control msg from black peer. (sender: %s)", senderPID)
+			p.logger.Debugf("[ChainPubSub] ignore app/spread-control msg from black peer. (sender: %s)",
+				senderPID)
 			return
 		}
 
@@ -516,11 +517,13 @@ func (p *ChainPubSub) handleAppMessages(messages []*pb.ApplicationMsg) {
 				p.ID(), msg.Sender, msg.MsgSeq)
 			continue
 		}
-		//p.logger.Debugf("[ChainPubSub][HandleAppMsg] (sender:%s, local:%s, stations:%v)", msg.Sender, p.ID(), msg.Stations)
+		//p.logger.Debugf("[ChainPubSub][HandleAppMsg] (sender:%s, local:%s, stations:%v)",
+		// msg.Sender, p.ID(), msg.Stations)
 		// whether msg exist
 		// if not exist, put into cache
 		if !p.ps.msgCache.PutIfNoExists(msg) {
-			//p.logger.Debugf("[ChainPubSub][HandleAppMsg] msg have seen, (sender:%s, seq:%d)", msg.Sender, msg.MsgSeq)
+			//p.logger.Debugf("[ChainPubSub][HandleAppMsg] msg have seen, (sender:%s, seq:%d)",
+			// msg.Sender, msg.MsgSeq)
 			continue
 		}
 

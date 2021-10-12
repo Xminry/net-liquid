@@ -374,7 +374,7 @@ func (c *conn) Network() network.Network {
 	return c.nw
 }
 
-// CreateSendStream try to open a send stream with the connection.
+// CreateSendStream try to open a sending stream with the connection.
 func (c *conn) CreateSendStream() (network.SendStream, error) {
 	ys, err := c.sessForUni.OpenStream(c.ctx)
 	if err != nil {
@@ -384,8 +384,8 @@ func (c *conn) CreateSendStream() (network.SendStream, error) {
 	return newSendStream(c, ys), nil
 }
 
-// AcceptReceiveStream accept a receive stream with the connection.
-// It will block until a new receive stream accepted or connection closed.
+// AcceptReceiveStream accept a receiving stream with the connection.
+// It will block until a new receiving stream accepted or connection closed.
 func (c *conn) AcceptReceiveStream() (network.ReceiveStream, error) {
 	select {
 	case <-c.closeC:

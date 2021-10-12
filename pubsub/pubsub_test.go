@@ -35,7 +35,7 @@ var (
 	log = logger.NewLogPrinter("TEST")
 )
 
-func TestNewChainPubsub(t *testing.T) {
+func TestNewChainPubSub(t *testing.T) {
 	h, _, _, err := tlssupport.CreateHostRandom(0, ip, nil, log)
 	require.Nil(t, err)
 	ps := NewChainPubSub(chainIds[0], log)
@@ -46,7 +46,7 @@ func TestNewChainPubsub(t *testing.T) {
 	_ = h.Stop()
 }
 
-func TestChainPubsubAllMetadataOnlyPeers(t *testing.T) {
+func TestChainPubSubAllMetadataOnlyPeers(t *testing.T) {
 	h, _, _, err := tlssupport.CreateHostRandom(1, ip, nil, log)
 	require.Nil(t, err)
 	ps := NewChainPubSub(chainIds[0], log)
@@ -58,7 +58,7 @@ func TestChainPubsubAllMetadataOnlyPeers(t *testing.T) {
 	_ = h.Stop()
 }
 
-func TestChainPubsubSubscribeAndUnsubscribe(t *testing.T) {
+func TestChainPubSubSubscribeAndUnsubscribe(t *testing.T) {
 	h, _, _, err := tlssupport.CreateHostRandom(2, ip, nil, log)
 	require.Nil(t, err)
 	ps := NewChainPubSub(chainIds[0], log)
@@ -73,7 +73,7 @@ func TestChainPubsubSubscribeAndUnsubscribe(t *testing.T) {
 	_ = h.Stop()
 }
 
-func TestChainPubsubPublish(t *testing.T) {
+func TestChainPubSubPublish(t *testing.T) {
 	h, _, _, err := tlssupport.CreateHostRandom(3, ip, nil, log)
 	require.Nil(t, err)
 	ps := NewChainPubSub(chainIds[0], log)
@@ -86,7 +86,7 @@ func TestChainPubsubPublish(t *testing.T) {
 }
 
 //
-//func TestChainPubsubMessageBroadcast(t *testing.T) {
+//func TestChainPubSubMessageBroadcast(t *testing.T) {
 //	sendCount := 100
 //	nodeCount := 20
 //

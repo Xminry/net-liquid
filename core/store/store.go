@@ -6,7 +6,7 @@ import (
 	ma "github.com/multiformats/go-multiaddr"
 )
 
-// PeerStore is a interface wrapped AddrBook and ProtocolBook.
+// PeerStore is an interface wrapped AddrBook and ProtocolBook.
 type PeerStore interface {
 	AddrBook
 	ProtocolBook

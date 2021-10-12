@@ -172,7 +172,8 @@ func (c *connSupervisor) checkConn() {
 	}
 	if curSize >= allSize {
 		if atomic.LoadInt32(&c.allConnected) == 0 {
-			c.logger.Debugf("[ConnSupervisor][CheckConn] necessary peers count:%d, connected:%d)", allSize, curSize)
+			c.logger.Debugf("[ConnSupervisor][CheckConn] necessary peers count:%d, connected:%d)",
+				allSize, curSize)
 			c.logger.Infof("[ConnSupervisor] all necessary peers connected.")
 			atomic.StoreInt32(&c.allConnected, 1)
 			select {

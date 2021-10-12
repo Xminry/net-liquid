@@ -56,7 +56,7 @@ var (
 	// ErrEmptyLocalPeerId will be returned if load local peer id failed.
 	ErrEmptyLocalPeerId = errors.New("empty local peer id")
 	// ErrNoUsableLocalAddress will be returned if no usable local address found
-	// when the local listening address is a Unspecified address.
+	// when the local listening address is an unspecified address.
 	ErrNoUsableLocalAddress = errors.New("no usable local address found")
 
 	listenMatcher      = mafmt.And(mafmt.IP, mafmt.Base(ma.P_UDP), mafmt.Base(ma.P_QUIC))
@@ -143,7 +143,7 @@ func WithLoadPidFunc(f types.LoadPeerIdFromCMTlsCertFunc) Option {
 }
 
 // WithLocalPeerId will set the local peer.ID for the network.
-// If LoadPidFunc option set, the local peer.ID set by this method will be overwritten probably.
+// If LoadPidFunc option set, the local peer.ID set by this method will be overwritten, probably.
 func WithLocalPeerId(pid peer.ID) Option {
 	return func(n *qNetwork) error {
 		n.lPID = pid

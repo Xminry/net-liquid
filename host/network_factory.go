@@ -148,7 +148,7 @@ func newNetwork(typ NetworkType, logger api.Logger, opt ...Option) (network.Netw
 }
 
 // ConfirmNetworkTypeByAddr return a network type supported that for the address.
-// If the format of address is wrong or it is a unsupported address, return UnknownNetwork.
+// If the format of address is wrong, or it is an unsupported address, return UnknownNetwork.
 func ConfirmNetworkTypeByAddr(addr ma.Multiaddr) NetworkType {
 	netType := UnknownNetwork
 	switch {

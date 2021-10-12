@@ -32,10 +32,10 @@ type Conn interface {
 	RemotePeerID() peer.ID
 	// Network is the network instance who create this connection.
 	Network() Network
-	// CreateSendStream try to open a send stream with the connection.
+	// CreateSendStream try to open a sending stream with the connection.
 	CreateSendStream() (SendStream, error)
-	// AcceptReceiveStream accept a receive stream with the connection.
-	// It will block until a new receive stream accepted or connection closed.
+	// AcceptReceiveStream accept a receiving stream with the connection.
+	// It will block until a new receiving stream accepted or connection closed.
 	AcceptReceiveStream() (ReceiveStream, error)
 	// CreateBidirectionalStream try to open a bidirectional stream with the connection.
 	CreateBidirectionalStream() (Stream, error)
