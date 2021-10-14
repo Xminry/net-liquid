@@ -11,11 +11,11 @@ import (
 	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
 )
 
-// GroupMulticast send message to peers in group.
+// GroupMulticast send message to all peers in group.
 type GroupMulticast interface {
 
 	// AddPeerToGroup add peers to the group which name is the given groupName.
-	// If the group not exists, it will created.
+	// If the group not exists, it will be created.
 	AddPeerToGroup(groupName string, peers ...peer.ID)
 
 	// RemovePeerFromGroup remove peers from the group which name is the given groupName.

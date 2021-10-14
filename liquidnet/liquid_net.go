@@ -284,7 +284,7 @@ func (l *LiquidNet) CancelSubscribeWithChainId(chainId string, topic string) err
 	if !ok {
 		return ErrorPubSubNotExist
 	}
-	// whether has subscribe
+	// whether topic has subscribed
 	chainTopic := chainAppendTopic(chainId, topic)
 	if !l.subscribeTopic.Exist(chainTopic) {
 		return ErrorTopicNotSubscribed

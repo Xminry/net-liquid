@@ -89,7 +89,7 @@ func (s *addrList) Size() int {
 
 var _ store.AddrBook = (*addrBook)(nil)
 
-// addrBook is an simple implementation of store.AddrBook interface.
+// addrBook is a simple implementation of store.AddrBook interface.
 type addrBook struct {
 	book sync.Map // map[peer.ID]*addrList
 }
@@ -206,7 +206,7 @@ func (pm *protocolSet) All() []protocol.ID {
 
 var _ store.ProtocolBook = (*protocolBook)(nil)
 
-// protocolBook is an simple implementation of store.ProtocolBook interface.
+// protocolBook is a simple implementation of store.ProtocolBook interface.
 type protocolBook struct {
 	mu       sync.RWMutex
 	book     map[peer.ID]*protocolSet
@@ -314,7 +314,7 @@ func newProtocolBook(localPid peer.ID) store.ProtocolBook {
 
 var _ store.PeerStore = (*SimplePeerStore)(nil)
 
-// SimplePeerStore is an simple implementation of store.PeerStore interface.
+// SimplePeerStore is a simple implementation of store.PeerStore interface.
 // It wrapped with a *protocolBook and a *addrBook.
 type SimplePeerStore struct {
 	store.ProtocolBook

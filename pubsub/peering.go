@@ -464,7 +464,8 @@ func (m *topicPeeringMgr) PeerJoinUp(pid peer.ID) error {
 	return nil
 }
 
-// PeerCutOff downgrade a FullMsgPeering peer to a MetadataOnlyPeering peer or add a new peer with MetadataOnlyPeering for topic.
+// PeerCutOff downgrade a FullMsgPeering peer to a MetadataOnlyPeering peer
+// or add a new peer with MetadataOnlyPeering for topic.
 func (m *topicPeeringMgr) PeerCutOff(pid peer.ID) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -497,7 +498,8 @@ func (m *topicPeeringMgr) TargetFullMsgPeers() (*types.PeerIdSet, string) {
 		// send msg to full-msg-peering peers
 		typeSet = m.fullMsgPeer
 		whichType = "full-msg-peering"
-		//m.logger.Debugf("[TopicPeeringMgr] [PublishAppMsg] send app msg to full msg peering, (peer count:%d)", len(typeSet))
+		//m.logger.Debugf("[TopicPeeringMgr] [PublishAppMsg] send app msg to full msg peering, (peer count:%d)",
+		// len(typeSet))
 	} else {
 		m.mu.RUnlock()
 		m.fanOutCheck(true)
@@ -506,7 +508,8 @@ func (m *topicPeeringMgr) TargetFullMsgPeers() (*types.PeerIdSet, string) {
 		// send msg to fan-out-peering peers
 		typeSet = m.fanOutPeer
 		whichType = "fan-out-peering"
-		//m.logger.Debugf("[TopicPeeringMgr] [PublishAppMsg] send app msg to fan out peering, (peer count:%d)", len(typeSet))
+		//m.logger.Debugf("[TopicPeeringMgr] [PublishAppMsg] send app msg to fan out peering, (peer count:%d)",
+		// len(typeSet))
 	}
 	return typeSet, whichType
 }

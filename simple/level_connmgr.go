@@ -157,7 +157,7 @@ func (cm *LevelConnManager) Close() error {
 	return nil
 }
 
-// IsHighLevel return true if the peer which is high-level (consensus & seeds) node. Otherwise return false.
+// IsHighLevel return true if the peer which is high-level (consensus & seeds) node. Otherwise, return false.
 func (cm *LevelConnManager) IsHighLevel(peerId peer.ID) bool {
 	return cm.highLevelPeers.Exist(peerId)
 }
@@ -504,7 +504,7 @@ func (cm *LevelConnManager) GetPeerAllConn(pid peer.ID) []network.Conn {
 	return res
 }
 
-// IsConnected return true if peer has connected. Otherwise return false.
+// IsConnected return true if peer has connected. Otherwise, return false.
 func (cm *LevelConnManager) IsConnected(pid peer.ID) bool {
 	cm.cmLock.RLock()
 	defer cm.cmLock.RUnlock()
@@ -517,7 +517,7 @@ func (cm *LevelConnManager) IsConnected(pid peer.ID) bool {
 	return false
 }
 
-// IsAllowed return true if peer can connect to self. Otherwise return false.
+// IsAllowed return true if peer can connect to self. Otherwise, return false.
 func (cm *LevelConnManager) IsAllowed(pid peer.ID) bool {
 	cm.cmLock.RLock()
 	defer cm.cmLock.RUnlock()

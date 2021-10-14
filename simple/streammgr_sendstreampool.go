@@ -96,7 +96,7 @@ func (s *sendStreamPool) InitStreams() error {
 	return err
 }
 
-// BorrowStream get a send stream from send stream queue in pool.
+// BorrowStream get a sending stream from send stream queue in pool.
 // The stream borrowed should be return to this pool after sending data success,
 // or should be dropped by invoking DropStream method when errors found in sending data process.
 func (s *sendStreamPool) BorrowStream() (network.SendStream, error) {
@@ -194,7 +194,7 @@ func (s *sendStreamPool) expandingThreshold() int32 {
 	return int32(math.Round(s.idlePercentage * float64(atomic.LoadInt32(&s.currentSize))))
 }
 
-// ReturnStream return a send stream borrowed from this pool before.
+// ReturnStream return a sending stream borrowed from this pool before.
 func (s *sendStreamPool) ReturnStream(stream network.SendStream) error {
 	select {
 	case <-s.closeChan:
@@ -207,7 +207,7 @@ func (s *sendStreamPool) ReturnStream(stream network.SendStream) error {
 	return nil
 }
 
-// DropStream will close the send stream then drop it.
+// DropStream will close the sending stream then drop it.
 // This method should be invoked only when errors found.
 func (s *sendStreamPool) DropStream(stream network.SendStream) {
 	_ = stream.Close()

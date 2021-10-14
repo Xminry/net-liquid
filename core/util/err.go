@@ -15,7 +15,7 @@ func ParseErrsToStr(errs []error) string {
 	return res
 }
 
-// IsNetError parse a err to a net.Error if it is a implementation of net.Error interface.
+// IsNetError parse a err to a net.Error if it is an implementation of net.Error interface.
 func IsNetError(err error) (net.Error, bool) {
 	e, ok := err.(net.Error)
 	if ok {

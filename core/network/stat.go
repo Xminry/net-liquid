@@ -31,7 +31,7 @@ func (d Direction) String() string {
 	return str[d]
 }
 
-// Stat is a interface for storing metadata of a Conn or a Stream.
+// Stat is an interface for storing metadata of a Conn or a Stream.
 type Stat interface {
 	Direction() Direction
 	EstablishedTime() time.Time
@@ -48,7 +48,7 @@ type BasicStat struct {
 	establishedTime time.Time
 	// closed specifies whether this connection has been closed. 0 means open, 1 means closed
 	closed int32
-	// extra stores extra metadata of this connection.
+	// extra stores other metadata of this connection.
 	extra map[interface{}]interface{}
 }
 

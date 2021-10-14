@@ -18,7 +18,8 @@ type ProtocolSupportNotifyFunc func(protocolID protocol.ID, pid peer.ID)
 
 // ProtocolManager manages all protocol and protocol msg handler for all peers.
 type ProtocolManager interface {
-	// RegisterMsgPayloadHandler register a protocol supported by us and map a handler.MsgPayloadHandler to this protocol.
+	// RegisterMsgPayloadHandler register a protocol supported by us
+	// and map a handler.MsgPayloadHandler to this protocol.
 	RegisterMsgPayloadHandler(protocolID protocol.ID, handler handler.MsgPayloadHandler) error
 	// UnregisterMsgPayloadHandler unregister a protocol supported by us.
 	UnregisterMsgPayloadHandler(protocolID protocol.ID) error
@@ -27,7 +28,7 @@ type ProtocolManager interface {
 	// GetHandler return the handler.MsgPayloadHandler mapped to the protocol supported by us and id is the given.
 	// If the protocol not supported by us, return nil.
 	GetHandler(protocolID protocol.ID) handler.MsgPayloadHandler
-	// GetSelfSupportedProtocols return a list of protocol.ID that supported by ourself.
+	// GetSelfSupportedProtocols return a list of protocol.ID that supported by myself.
 	GetSelfSupportedProtocols() []protocol.ID
 	// IsPeerSupported return whether the protocol is supported by peer which id is the given pid.
 	// If peer not connected to us, return false.
@@ -44,7 +45,7 @@ type ProtocolManager interface {
 	SetProtocolUnsupportedNotifyFunc(notifyFunc ProtocolSupportNotifyFunc)
 }
 
-// ProtocolExchanger usually be used to exchange protocols supported by both peers.
+// ProtocolExchanger usual be used to exchange protocols supported by both peers.
 type ProtocolExchanger interface {
 	// ProtocolID is the protocol.ID of exchanger service.
 	// The protocol id will be registered in host.RegisterMsgPayloadHandler method.

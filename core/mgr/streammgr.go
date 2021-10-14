@@ -20,13 +20,13 @@ type SendStreamPool interface {
 	Conn() network.Conn
 	// InitStreams will open few send streams with the connection.
 	InitStreams() error
-	// BorrowStream get a send stream from send stream queue in pool.
+	// BorrowStream get a sending stream from send stream queue in pool.
 	// The stream borrowed should be return to this pool after sending data success,
 	// or should be dropped by invoking DropStream method when errors found in sending data process.
 	BorrowStream() (network.SendStream, error)
-	// ReturnStream return a send stream borrowed from this pool before.
+	// ReturnStream return a sending stream borrowed from this pool before.
 	ReturnStream(network.SendStream) error
-	// DropStream will close the send stream then drop it.
+	// DropStream will close the sending stream then drop it.
 	// This method should be invoked only when errors found.
 	DropStream(network.SendStream)
 	// MaxSize return cap of this pool.
@@ -55,14 +55,14 @@ type ReceiveStreamManager interface {
 	Reset()
 	// SetPeerReceiveStreamMaxCount set the max count allowed.
 	SetPeerReceiveStreamMaxCount(max int)
-	// AddPeerReceiveStream append a receive stream to manager.
+	// AddPeerReceiveStream append a receiving stream to manager.
 	AddPeerReceiveStream(pid peer.ID, conn network.Conn, stream network.ReceiveStream) error
-	// RemovePeerReceiveStream remove a receive stream from manager.
+	// RemovePeerReceiveStream remove a receiving stream from manager.
 	RemovePeerReceiveStream(pid peer.ID, conn network.Conn, stream network.ReceiveStream) error
 	// GetCurrentPeerReceiveStreamCount return current count of receive streams
 	// whose remote peer id is the given pid.
 	GetCurrentPeerReceiveStreamCount(pid peer.ID) int
-	// ClosePeerReceiveStreams will close all the receive streams whose remote
+	// ClosePeerReceiveStreams will close all the receiving streams whose remote
 	// peer id is the given pid and which created by the given connection.
 	ClosePeerReceiveStreams(pid peer.ID, conn network.Conn) error
 }

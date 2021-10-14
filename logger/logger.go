@@ -12,7 +12,7 @@ import api "chainmaker.org/chainmaker/protocol/v2"
 // It will log nothing.
 var NilLogger = &nilLogger{}
 
-// Logger is a interface of net logger.
+// Logger is an interface of net logger.
 //type Logger interface {
 //	Debug(args ...interface{})
 //	Debugf(format string, args ...interface{})

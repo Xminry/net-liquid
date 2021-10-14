@@ -9,7 +9,7 @@ const (
 	defaultBatchSize = 4 << 10 // 4KB
 )
 
-// ReadPackageLength will read 8 bytes from network.ReceiveStream, then parse these bytes to a uint64 value.
+// ReadPackageLength will read 8 bytes from network.ReceiveStream, then parse these bytes to an uint64 value.
 func ReadPackageLength(stream network.ReceiveStream) (uint64, []byte, error) {
 	lengthBytes, err := ReadPackageData(stream, 8)
 	if err != nil {
