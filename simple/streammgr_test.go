@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/logger"
+	"chainmaker.org/chainmaker/net-liquid/core/network"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/logger"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
 )

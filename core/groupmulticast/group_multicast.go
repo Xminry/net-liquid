@@ -7,8 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package groupmulticast
 
 import (
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/protocol"
 )
 
 // GroupMulticast send message to all peers in group.

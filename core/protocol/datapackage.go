@@ -1,6 +1,6 @@
 package protocol
 
-import "chainmaker.org/chainmaker/chainmaker-net-common/utils"
+import "chainmaker.org/chainmaker/net-common/utils"
 
 // Package is a container for net message.
 type Package struct {

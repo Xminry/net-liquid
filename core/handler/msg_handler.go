@@ -6,7 +6,7 @@ SPDX-License-Identifier: Apache-2.0
 
 package handler
 
-import "chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
+import "chainmaker.org/chainmaker/net-liquid/core/peer"
 
 // MsgPayloadHandler is a function to handle the msg payload received from sender.
 type MsgPayloadHandler func(senderPID peer.ID, msgPayload []byte)

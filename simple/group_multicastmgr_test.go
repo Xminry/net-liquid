@@ -11,7 +11,7 @@ import (
 	"sync"
 	"testing"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -13,14 +13,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	"chainmaker.org/chainmaker/chainmaker-net-common/utils"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/broadcast"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/handler"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/host"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/pubsub/pb"
+	"chainmaker.org/chainmaker/net-common/utils"
+	"chainmaker.org/chainmaker/net-liquid/core/broadcast"
+	"chainmaker.org/chainmaker/net-liquid/core/handler"
+	"chainmaker.org/chainmaker/net-liquid/core/host"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/protocol"
+	"chainmaker.org/chainmaker/net-liquid/core/types"
+	"chainmaker.org/chainmaker/net-liquid/pubsub/pb"
 	api "chainmaker.org/chainmaker/protocol/v2"
 )
 

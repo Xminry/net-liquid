@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/pubsub/pb"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/types"
+	"chainmaker.org/chainmaker/net-liquid/pubsub/pb"
 )
 
 const (

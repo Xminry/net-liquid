@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"testing"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/pubsub/pb"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/pubsub/pb"
 	"github.com/stretchr/testify/assert"
 )
 

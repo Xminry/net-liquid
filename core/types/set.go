@@ -4,8 +4,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/network"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
 )
 
 type Set struct {

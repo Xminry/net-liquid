@@ -9,15 +9,15 @@ package host
 import (
 	"context"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/basic"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/blacklist"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/handler"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/mgr"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/store"
 	"chainmaker.org/chainmaker/common/v2/crypto"
+	"chainmaker.org/chainmaker/net-liquid/core/basic"
+	"chainmaker.org/chainmaker/net-liquid/core/blacklist"
+	"chainmaker.org/chainmaker/net-liquid/core/handler"
+	"chainmaker.org/chainmaker/net-liquid/core/mgr"
+	"chainmaker.org/chainmaker/net-liquid/core/network"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/protocol"
+	"chainmaker.org/chainmaker/net-liquid/core/store"
 	ma "github.com/multiformats/go-multiaddr"
 )
 

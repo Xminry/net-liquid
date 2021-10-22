@@ -1,8 +1,9 @@
 package util
 
 import (
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
 	"testing"
+
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
 
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"

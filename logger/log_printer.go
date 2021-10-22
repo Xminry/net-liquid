@@ -7,13 +7,14 @@ SPDX-License-Identifier: Apache-2.0
 package logger
 
 import (
-	api "chainmaker.org/chainmaker/protocol/v2"
 	"fmt"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
+
+	api "chainmaker.org/chainmaker/protocol/v2"
 )
 
 const (

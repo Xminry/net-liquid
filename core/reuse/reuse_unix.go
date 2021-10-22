@@ -3,8 +3,9 @@
 package reuse
 
 import (
-	"golang.org/x/sys/unix"
 	"syscall"
+
+	"golang.org/x/sys/unix"
 )
 
 func Control(network, address string, c syscall.RawConn) error {

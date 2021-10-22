@@ -11,10 +11,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"chainmaker.org/chainmaker/chainmaker-net-common/utils"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/host"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/mgr"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-common/utils"
+	"chainmaker.org/chainmaker/net-liquid/core/host"
+	"chainmaker.org/chainmaker/net-liquid/core/mgr"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
 	api "chainmaker.org/chainmaker/protocol/v2"
 	ma "github.com/multiformats/go-multiaddr"
 )

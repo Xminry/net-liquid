@@ -11,9 +11,9 @@ import (
 	"encoding/pem"
 	"errors"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
 	cmx509 "chainmaker.org/chainmaker/common/v2/crypto/x509"
 	"chainmaker.org/chainmaker/common/v2/helper"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
 	gmx509 "github.com/tjfoc/gmsm/x509"
 )
 

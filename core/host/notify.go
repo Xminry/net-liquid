@@ -7,8 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package host
 
 import (
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/protocol"
 )
 
 // Notifiee contains functions for host notifying call back.

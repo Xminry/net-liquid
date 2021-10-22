@@ -7,8 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package tlssupport
 
 import (
-	cmTls "chainmaker.org/chainmaker/common/v2/crypto/tls"
-	cmx509 "chainmaker.org/chainmaker/common/v2/crypto/x509"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -19,12 +17,15 @@ import (
 	"math/big"
 	"time"
 
-	"chainmaker.org/chainmaker/chainmaker-net-common/utils"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/util"
+	cmTls "chainmaker.org/chainmaker/common/v2/crypto/tls"
+	cmx509 "chainmaker.org/chainmaker/common/v2/crypto/x509"
+
 	"chainmaker.org/chainmaker/common/v2/crypto"
 	"chainmaker.org/chainmaker/common/v2/crypto/asym"
+	"chainmaker.org/chainmaker/net-common/utils"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/types"
+	"chainmaker.org/chainmaker/net-liquid/core/util"
 	"golang.org/x/sys/cpu"
 )
 

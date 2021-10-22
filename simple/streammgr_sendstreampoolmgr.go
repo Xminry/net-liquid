@@ -1,9 +1,9 @@
 package simple
 
 import (
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/mgr"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/mgr"
+	"chainmaker.org/chainmaker/net-liquid/core/network"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
 	api "chainmaker.org/chainmaker/protocol/v2"
 
 	"errors"

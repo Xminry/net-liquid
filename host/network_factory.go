@@ -10,12 +10,12 @@ import (
 	"context"
 	"errors"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/host/quic"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/host/tcp"
 	cmTls "chainmaker.org/chainmaker/common/v2/crypto/tls"
+	"chainmaker.org/chainmaker/net-liquid/core/network"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/types"
+	"chainmaker.org/chainmaker/net-liquid/host/quic"
+	"chainmaker.org/chainmaker/net-liquid/host/tcp"
 	api "chainmaker.org/chainmaker/protocol/v2"
 	ma "github.com/multiformats/go-multiaddr"
 )

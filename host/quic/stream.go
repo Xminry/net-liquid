@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
+	"chainmaker.org/chainmaker/net-liquid/core/network"
 	"github.com/xiaotianfork/quic-go"
 )
 

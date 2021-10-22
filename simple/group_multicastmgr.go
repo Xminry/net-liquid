@@ -11,10 +11,10 @@ import (
 	"strings"
 	"sync"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/groupmulticast"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/host"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
+	"chainmaker.org/chainmaker/net-liquid/core/groupmulticast"
+	"chainmaker.org/chainmaker/net-liquid/core/host"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/protocol"
 	api "chainmaker.org/chainmaker/protocol/v2"
 )
 

@@ -1,8 +1,8 @@
 package util
 
 import (
-	"chainmaker.org/chainmaker/chainmaker-net-common/utils"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
+	"chainmaker.org/chainmaker/net-common/utils"
+	"chainmaker.org/chainmaker/net-liquid/core/network"
 )
 
 const (

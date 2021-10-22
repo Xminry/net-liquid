@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/protocol"
 	ma "github.com/multiformats/go-multiaddr"
 )
 

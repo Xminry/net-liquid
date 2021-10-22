@@ -7,12 +7,13 @@ SPDX-License-Identifier: Apache-2.0
 package pubsub
 
 import (
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/logger"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/tlssupport"
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/logger"
+	"chainmaker.org/chainmaker/net-liquid/tlssupport"
+	"github.com/stretchr/testify/require"
 )
 
 const msg = "Hello!My first PubSub program demo."

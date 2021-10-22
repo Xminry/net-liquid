@@ -7,10 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package liquidnet
 
 import (
-	"chainmaker.org/chainmaker/chainmaker-net-common/common/pkt"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/host"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
+	"chainmaker.org/chainmaker/net-common/common/pkt"
+	"chainmaker.org/chainmaker/net-liquid/core/host"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/protocol"
 	api "chainmaker.org/chainmaker/protocol/v2"
 
 	"sync"

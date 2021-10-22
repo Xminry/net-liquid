@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/pubsub/pb"
+	"chainmaker.org/chainmaker/net-liquid/pubsub/pb"
 	"github.com/gogo/protobuf/proto"
 )
 

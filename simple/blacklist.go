@@ -10,10 +10,10 @@ import (
 	"net"
 	"strings"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/blacklist"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
+	"chainmaker.org/chainmaker/net-liquid/core/blacklist"
+	"chainmaker.org/chainmaker/net-liquid/core/network"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/types"
 )
 
 var _ blacklist.BlackList = (*simpleBlacklist)(nil)

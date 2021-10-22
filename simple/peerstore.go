@@ -9,10 +9,10 @@ package simple
 import (
 	"sync"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/store"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/protocol"
+	"chainmaker.org/chainmaker/net-liquid/core/store"
+	"chainmaker.org/chainmaker/net-liquid/core/types"
 	ma "github.com/multiformats/go-multiaddr"
 )
 

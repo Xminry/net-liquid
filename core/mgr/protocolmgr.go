@@ -7,10 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package mgr
 
 import (
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/handler"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
+	"chainmaker.org/chainmaker/net-liquid/core/handler"
+	"chainmaker.org/chainmaker/net-liquid/core/network"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/protocol"
 )
 
 // ProtocolSupportNotifyFunc is a function to notify peer protocol supporting or not.

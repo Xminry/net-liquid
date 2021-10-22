@@ -3,7 +3,7 @@ package util
 import (
 	"net"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
 	ma "github.com/multiformats/go-multiaddr"
 )
 

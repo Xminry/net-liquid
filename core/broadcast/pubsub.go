@@ -7,10 +7,10 @@ SPDX-License-Identifier: Apache-2.0
 package broadcast
 
 import (
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/handler"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/host"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
+	"chainmaker.org/chainmaker/net-liquid/core/handler"
+	"chainmaker.org/chainmaker/net-liquid/core/host"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/protocol"
 )
 
 // PubSub provides the functions of broadcasting and subscribing messages to the network.

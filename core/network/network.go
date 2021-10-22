@@ -9,7 +9,7 @@ package network
 import (
 	"io"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
 )
 
 // ConnHandler is a function for handling connections.

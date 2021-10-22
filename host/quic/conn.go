@@ -7,17 +7,18 @@ SPDX-License-Identifier: Apache-2.0
 package quic
 
 import (
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/types"
 	"context"
 	"fmt"
-	ma "github.com/multiformats/go-multiaddr"
-	manet "github.com/multiformats/go-multiaddr/net"
-	"github.com/xiaotianfork/quic-go"
 	"net"
 	"sync"
 	"time"
+
+	"chainmaker.org/chainmaker/net-liquid/core/network"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/types"
+	ma "github.com/multiformats/go-multiaddr"
+	manet "github.com/multiformats/go-multiaddr/net"
+	"github.com/xiaotianfork/quic-go"
 )
 
 var _ network.Conn = (*qConn)(nil)

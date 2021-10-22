@@ -7,21 +7,22 @@ SPDX-License-Identifier: Apache-2.0
 package host
 
 import (
-	"chainmaker.org/chainmaker/common/v2/crypto/asym"
-	cmTls "chainmaker.org/chainmaker/common/v2/crypto/tls"
-	cmx509 "chainmaker.org/chainmaker/common/v2/crypto/x509"
 	"context"
 	"crypto/tls"
-	qx509 "github.com/xiaotianfork/q-tls-common/x509"
 	"strconv"
 	"testing"
 	"time"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/host"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/logger"
+	"chainmaker.org/chainmaker/common/v2/crypto/asym"
+	cmTls "chainmaker.org/chainmaker/common/v2/crypto/tls"
+	cmx509 "chainmaker.org/chainmaker/common/v2/crypto/x509"
+	qx509 "github.com/xiaotianfork/q-tls-common/x509"
+
 	"chainmaker.org/chainmaker/common/v2/helper"
+	"chainmaker.org/chainmaker/net-liquid/core/host"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/protocol"
+	"chainmaker.org/chainmaker/net-liquid/logger"
 	ma "github.com/multiformats/go-multiaddr"
 	"github.com/stretchr/testify/require"
 )

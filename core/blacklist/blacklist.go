@@ -7,8 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package blacklist
 
 import (
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/network"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
 )
 
 // BlackList is a blacklist implementation for net addresses or peer ids .

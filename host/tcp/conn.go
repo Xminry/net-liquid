@@ -14,9 +14,9 @@ import (
 	"sync"
 	"time"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
 	cmTls "chainmaker.org/chainmaker/common/v2/crypto/tls"
+	"chainmaker.org/chainmaker/net-liquid/core/network"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
 	"github.com/libp2p/go-yamux/v2"
 	ma "github.com/multiformats/go-multiaddr"
 	manet "github.com/multiformats/go-multiaddr/net"

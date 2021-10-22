@@ -9,8 +9,8 @@ package mgr
 import (
 	"io"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/network"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
 )
 
 // SendStreamPool is a pool stores send streams.

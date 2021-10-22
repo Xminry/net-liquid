@@ -10,9 +10,9 @@ import (
 	"errors"
 	"sync"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/handler"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/pubsub/pb"
+	"chainmaker.org/chainmaker/net-liquid/core/handler"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/pubsub/pb"
 )
 
 // PeerState stored subscription infos and cached necessary data of message published or received.

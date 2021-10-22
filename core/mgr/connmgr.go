@@ -9,9 +9,9 @@ package mgr
 import (
 	"io"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/basic"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/network"
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/peer"
+	"chainmaker.org/chainmaker/net-liquid/core/basic"
+	"chainmaker.org/chainmaker/net-liquid/core/network"
+	"chainmaker.org/chainmaker/net-liquid/core/peer"
 	ma "github.com/multiformats/go-multiaddr"
 )
 

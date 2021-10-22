@@ -10,7 +10,7 @@ import (
 	"errors"
 	"strings"
 
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/core/protocol"
+	"chainmaker.org/chainmaker/net-liquid/core/protocol"
 )
 
 const (

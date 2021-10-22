@@ -7,7 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package liquidnet
 
 import (
-	"chainmaker.org/chainmaker/chainmaker-net-liquid/host"
+	"chainmaker.org/chainmaker/net-liquid/host"
 	ma "github.com/multiformats/go-multiaddr"
 )
 
