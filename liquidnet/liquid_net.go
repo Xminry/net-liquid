@@ -781,6 +781,7 @@ func (l *LiquidNet) queryAndStoreDerivedInfoInCertValidator(peerIdStr string) {
 	derivedInfo := l.tlsCertValidator.QueryDerivedInfoWithPeerId(peerIdStr)
 	if derivedInfo != nil {
 		l.peerIdTlsCertStore.SetPeerTlsCert(derivedInfo.PeerId, derivedInfo.TlsCertBytes)
+		l.peerIdPubKeyStore.SetPeerPubKey(derivedInfo.PeerId, derivedInfo.PubKeyBytes)
 		for i := range derivedInfo.ChainIds {
 			l.peerIdChainIdsRecorder.AddPeerChainId(derivedInfo.PeerId, derivedInfo.ChainIds[i])
 		}
