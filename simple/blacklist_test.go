@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 package simple
 
 import (
+	manet "github.com/multiformats/go-multiaddr/net"
+	"net"
 	"testing"
 	"time"
 
@@ -99,6 +101,15 @@ var _ network.Conn = (*mockConn)(nil)
 
 type mockConn struct {
 	rAddr ma.Multiaddr
+}
+
+func (m mockConn) LocalNetAddr() net.Addr {
+	panic("implement me")
+}
+
+func (m mockConn) RemoteNetAddr() net.Addr {
+	n, _ := manet.ToNetAddr(m.rAddr)
+	return n
 }
 
 func (m mockConn) Close() error {

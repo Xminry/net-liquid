@@ -7,6 +7,7 @@ SPDX-License-Identifier: Apache-2.0
 package simple
 
 import (
+	"net"
 	"strconv"
 	"sync"
 	"testing"
@@ -198,6 +199,14 @@ func TestUseStreamPoolDynamic(t *testing.T) {
 var _ network.Conn = (*connStub)(nil)
 
 type connStub struct {
+}
+
+func (stub *connStub) LocalNetAddr() net.Addr {
+	panic("implement me")
+}
+
+func (stub *connStub) RemoteNetAddr() net.Addr {
+	panic("implement me")
 }
 
 func (stub *connStub) Close() error {
