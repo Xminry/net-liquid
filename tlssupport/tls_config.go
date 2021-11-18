@@ -136,7 +136,7 @@ func verifyCertChain(chain []*cmx509.Certificate) (bool, error) {
 
 	keyBytes, signBytes := loadKeyBytesAndSignatureBytesFromCertExt(ext)
 
-	certKeyPub, err := x509.MarshalPKIXPublicKey(cert.PublicKey)
+	certKeyPub, err := cmx509.MarshalPKIXPublicKey(cert.PublicKey.ToStandardKey())
 	if err != nil {
 		return false, err
 	}
