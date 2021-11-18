@@ -7,7 +7,6 @@ SPDX-License-Identifier: Apache-2.0
 package simple
 
 import (
-	manet "github.com/multiformats/go-multiaddr/net"
 	"net"
 	"testing"
 	"time"
@@ -15,6 +14,7 @@ import (
 	"chainmaker.org/chainmaker/net-liquid/core/network"
 	"chainmaker.org/chainmaker/net-liquid/core/peer"
 	ma "github.com/multiformats/go-multiaddr"
+	manet "github.com/multiformats/go-multiaddr/net"
 	"github.com/stretchr/testify/require"
 )
 
