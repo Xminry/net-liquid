@@ -7,12 +7,14 @@ SPDX-License-Identifier: Apache-2.0
 package simple
 
 import (
+	"net"
 	"testing"
 	"time"
 
 	"chainmaker.org/chainmaker/net-liquid/core/network"
 	"chainmaker.org/chainmaker/net-liquid/core/peer"
 	ma "github.com/multiformats/go-multiaddr"
+	manet "github.com/multiformats/go-multiaddr/net"
 	"github.com/stretchr/testify/require"
 )
 
@@ -99,6 +101,15 @@ var _ network.Conn = (*mockConn)(nil)
 
 type mockConn struct {
 	rAddr ma.Multiaddr
+}
+
+func (m mockConn) LocalNetAddr() net.Addr {
+	panic("implement me")
+}
+
+func (m mockConn) RemoteNetAddr() net.Addr {
+	n, _ := manet.ToNetAddr(m.rAddr)
+	return n
 }
 
 func (m mockConn) Close() error {

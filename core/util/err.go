@@ -21,7 +21,7 @@ func ParseErrsToStr(errs []error) string {
 	return res
 }
 
-// IsNetError parse a err to a net.Error if it is an implementation of net.Error interface.
+// IsNetError parse an error to a net.Error if it is an implementation of net.Error interface.
 func IsNetError(err error) (net.Error, bool) {
 	e, ok := err.(net.Error)
 	if ok {
@@ -52,5 +52,6 @@ func IsNetErrorTimeout(err error) bool {
 
 // IsConnClosedError return true if the info of err contains closed strings.
 func IsConnClosedError(err error) bool {
-	return strings.Contains(err.Error(), "Application error 0x0")
+	errStr := err.Error()
+	return strings.Contains(errStr, "Application error 0x0") || strings.Contains(errStr, "connection closed")
 }
