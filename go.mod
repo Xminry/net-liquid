@@ -3,9 +3,9 @@ module chainmaker.org/chainmaker/net-liquid
 go 1.15
 
 require (
-	chainmaker.org/chainmaker/common/v2 v2.1.1-0.20211108032042-88ed7467a15c
-	chainmaker.org/chainmaker/net-common v0.0.7-0.20211109085844-739f0f904b96
-	chainmaker.org/chainmaker/protocol/v2 v2.0.1-0.20211109074216-fc2674ef6e22
+	chainmaker.org/chainmaker/common/v2 v2.1.1-0.20211214041159-fe0b2240f08c
+	chainmaker.org/chainmaker/net-common v0.0.7-0.20211214135701-e366adf2f12c
+	chainmaker.org/chainmaker/protocol/v2 v2.1.1-0.20211214124103-9512460ad844
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548
 	github.com/gogo/protobuf v1.3.2
 	github.com/libp2p/go-yamux/v2 v2.2.0
@@ -16,5 +16,5 @@ require (
 	github.com/tjfoc/gmsm v1.4.1
 	github.com/xiaotianfork/q-tls-common v0.1.3
 	github.com/xiaotianfork/quic-go v0.21.24
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
+	golang.org/x/sys v0.0.0-20210823070655-63515b42dcdf
 )
